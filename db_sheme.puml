@@ -1,0 +1,76 @@
+@startuml
+
+hide circle
+skinparam linetype ortho
+skinparam nodesep 250
+skinparam ranksep 30
+entity Category {
+  *id : Integer <<generated>>
+  --
+  name : Text
+  parent_id : Integer <<FK>>
+}
+
+entity Article {
+  *id : Integer <<generated>>
+  --
+  category_id : Integer <<FK>>
+  title : Text
+  content : Text
+  created_at : DateTime
+}
+
+entity Question {
+  *id: Integer <<generated>>
+  --
+  article_id : Integer <<FK>>
+  text: Text
+}
+
+entity Answer {
+  *id: Integer <<generated>>
+  --
+  question_id: Integer <<FK>>
+  text: Text
+  is_correct: Boolean
+}
+
+entity Users {
+  *id: Integer <<generated>>
+  --
+  tg_id: Long <<unique>>
+  username: Text
+  full_name: Text
+  is_active: Boolean
+}
+
+entity UserHistory {
+  *id: Integer <<generated>>
+  --
+  user_id: Integer <<FK>>
+  question_id: Integer <<FK>>
+  answer_id: Integer <<FK>>
+  is_right: Boolean
+  created_at: DateTime
+}
+
+entity MailingLog {
+  *id : Integer <<generated>>
+  --
+  article_id : Integer <<FK>>
+  user_id : Integer <<FK>>
+  sent_at : DateTime
+}
+
+' Связи
+Category ||..o{ Category : "подкатегории"
+Category ||..o{ Article : "содержит"
+Article ||..o{ Question : "проверочные вопросы"
+Article ||..o{ MailingLog : "история рассылок"
+Question ||..|{ Answer : "варианты"
+Users ||..o{ UserHistory : "ответы"
+Users ||..o{ MailingLog : "получил"
+Question ||..o{ UserHistory : "предоставляет"
+Answer ||..o{ UserHistory : "предоставляет"
+
+@enduml
