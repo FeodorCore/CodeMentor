@@ -4,6 +4,7 @@ hide circle
 skinparam linetype ortho
 skinparam nodesep 250
 skinparam ranksep 30
+
 entity Category {
   *id : Integer <<generated>>
   --
@@ -18,6 +19,8 @@ entity Article {
   title : Text
   content : Text
   created_at : DateTime
+  schedule_at : DateTime
+  status : Text <<default : 'draft'>>
 }
 
 entity Question {
