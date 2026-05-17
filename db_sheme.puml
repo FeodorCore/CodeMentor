@@ -2,78 +2,70 @@
 
 hide circle
 skinparam linetype ortho
-skinparam nodesep 250
-skinparam ranksep 30
+skinparam nodesep 90
+skinparam ranksep 50
 
-entity Category {
+entity User {
   *id : Integer <<generated>>
   --
-  name : Text
-  parent_id : Integer <<FK>>
-}
-
-entity Article {
-  *id : Integer <<generated>>
-  --
-  category_id : Integer <<FK>>
-  title : Text
-  content : Text
+  telegram_id : BigInteger <<unique>>
+  username : String
+  first_name : String
+  is_admin : Boolean
   created_at : DateTime
-  schedule_at : DateTime
-  status : Text <<default : 'draft'>>
 }
 
-entity Question {
-  *id: Integer <<generated>>
-  --
-  article_id : Integer <<FK>>
-  text: Text
-}
-
-entity Answer {
-  *id: Integer <<generated>>
-  --
-  question_id: Integer <<FK>>
-  text: Text
-  is_correct: Boolean
-}
-
-entity Users {
-  *id: Integer <<generated>>
-  --
-  tg_id: Long <<unique>>
-  username: Text
-  full_name: Text
-  is_active: Boolean
-}
-
-entity UserHistory {
-  *id: Integer <<generated>>
-  --
-  user_id: Integer <<FK>>
-  question_id: Integer <<FK>>
-  answer_id: Integer <<FK>>
-  is_right: Boolean
-  created_at: DateTime
-}
-
-entity MailingLog {
+entity Lesson {
   *id : Integer <<generated>>
   --
-  article_id : Integer <<FK>>
-  user_id : Integer <<FK>>
-  sent_at : DateTime
+  title : String
+  description : Text
+  content : Text
+  is_published : Boolean
+  created_at : DateTime
 }
 
-' Связи
-Category ||..o{ Category : "подкатегории"
-Category ||..o{ Article : "содержит"
-Article ||..o{ Question : "проверочные вопросы"
-Article ||..o{ MailingLog : "история рассылок"
-Question ||..|{ Answer : "варианты"
-Users ||..o{ UserHistory : "ответы"
-Users ||..o{ MailingLog : "получил"
-Question ||..o{ UserHistory : "предоставляет"
-Answer ||..o{ UserHistory : "предоставляет"
+entity Submission {
+  *id : Integer <<generated>>
+  --
+  user_id : Integer <<FK>>
+  lesson_id : Integer <<FK>>
+
+  answer : Text
+  status : String
+  score : Integer
+
+  submitted_at : DateTime
+  reviewed_at : DateTime
+}
+
+entity UserProgress {
+  *id : Integer <<generated>>
+  --
+  user_id : Integer <<FK>>
+  lesson_id : Integer <<FK>>
+
+  is_completed : Boolean
+  completed_at : DateTime
+}
+
+entity ActionLog {
+  *id : Integer <<generated>>
+  --
+  user_id : Integer <<FK>>
+
+  action : String
+  details : Text
+
+  created_at : DateTime
+}
+
+User ||--o{ Submission
+Lesson ||--o{ Submission
+
+User ||--o{ UserProgress
+Lesson ||--o{ UserProgress
+
+User ||--o{ ActionLog
 
 @enduml
