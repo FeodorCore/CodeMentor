@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}История пользователя {{ user.full_name or user.tg_id }}{% endblock %}
+{% block content %}
+<h2>История ответов: {{ user.full_name or user.username or user.tg_id }}</h2>
+<table>
+    <tr><th>Вопрос</th><th>Ответ пользователя</th><th>Правильно?</th><th>Статья</th><th>Дата</th></tr>
+    {% for rec in history %}
+    <tr>
+        <td>{{ rec.question_text }}</td>
+        <td>{{ rec.answer_text }}</td>
+        <td>{{ '✅' if rec.is_right else '❌' }}</td>
+        <td>{{ rec.article_title }}</td>
+        <td>{{ rec.created_at }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5">Нет ответов.</td></tr>
+    {% endfor %}
+</table>
+<a href="/admin/users">Назад к списку пользователей</a>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Статьи{% endblock %}
+{% block content %}
+<h2>Статьи</h2>
+<a href="/admin/articles/create" class="btn">Создать статью</a>
+<table>
+    <tr><th>ID</th><th>Название</th><th>Категория</th><th>Статус</th><th>Действия</th></tr>
+    {% for art in articles %}
+    <tr>
+        <td>{{ art.id }}</td>
+        <td>{{ art.title }}</td>
+        <td>{{ categories.get(art.category_id, '?') }}</td>
+        <td>{{ art.status }}</td>
+        <td>
+            <a href="/admin/articles/{{ art.id }}" class="btn">Вопросы</a>
+            <a href="/admin/articles/edit/{{ art.id }}" class="btn btn-warning">Редактировать</a>
+            <a href="/admin/articles/delete/{{ art.id }}" class="btn btn-danger" onclick="return confirm('Удалить статью?')">Удалить</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}
