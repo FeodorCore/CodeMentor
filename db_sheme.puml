@@ -31,6 +31,7 @@ entity UserProgress {
   --
   user_id : INTEGER <<FK>>
   lesson_id : INTEGER <<FK>>
+  learned : bool
   completed_at : DATETIME
 }
 
