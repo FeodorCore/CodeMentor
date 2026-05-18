@@ -1,8 +1,5 @@
-# services.py
 import sqlite3
-from models import CategoryCreate, CategoryResponse
-
-
+from app.models.categories import CategoryCreate, CategoryResponse
 
 class CategoryService:
     """Сервис для работы с категориями."""

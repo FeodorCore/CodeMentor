@@ -1,14 +1,13 @@
 # main.py
 from fastapi import FastAPI
-from admin_routes import router as admin_router
-from init_db import DatabaseManager
+from app.api.admin.__init__ import router as admin_router
+from app.core.database import DatabaseManager
 from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def startup_event(app: FastAPI):
     db_manager = DatabaseManager(db_name="app.db", schema_name="schema.sql")
     db_manager.create_or_skip()
-
     yield
 app = FastAPI(title="Simple Admin API", lifespan=startup_event)
 

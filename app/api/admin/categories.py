@@ -1,11 +1,9 @@
-# admin_routes.py
 from fastapi import APIRouter, HTTPException
-from services import CategoryService
-from models import CategoryCreate, CategoryResponse
-
-router = APIRouter(prefix="/admin", tags=["Admin Panel"])
+from app.services.categories import CategoryService
+from app.models.categories import CategoryCreate, CategoryResponse
 
 category_service = CategoryService()
+router = APIRouter()
 
 @router.get("/categories", response_model=list[CategoryResponse])
 def get_categories():
