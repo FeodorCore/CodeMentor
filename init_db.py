@@ -1,7 +1,5 @@
-# init_db.py
 import sqlite3
 import os
-
 
 class DatabaseManager:
     def __init__(self, db_name="app.db", schema_name="schema.sql"):
