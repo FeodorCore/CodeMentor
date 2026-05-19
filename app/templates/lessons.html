@@ -12,6 +12,19 @@
 
 <p><a href="/admin/ui/lessons/create">Добавить новый урок</a></p>
 
+<form method="GET" action="/admin/ui/lessons" style="margin-bottom: 15px;">
+    <label for="category_filter">Фильтр по категории:</label>
+    <select id="category_filter" name="category_id">
+        <option value="">Все категории</option>
+        {% for cat in categories %}
+            <option value="{{ cat.id }}" {{ "selected" if selected_category_id == cat.id else "" }}>
+                {{ cat.name }}
+            </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Показать</button>
+</form>
+
 {% if lessons %}
     <table border="1" cellpadding="5" cellspacing="0">
         <thead>

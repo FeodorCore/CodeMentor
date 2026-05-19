@@ -12,16 +12,33 @@ category_service = CategoryService()
 
 @router.get("/lessons")
 async def lessons_page(request: Request):
-    lessons = lesson_service.get_all()
+    category_id_str = request.query_params.get("category_id")
     categories = category_service.get_all()
-    # Создаем словарь для быстрого доступа к названиям категорий в шаблоне
+
+    # Если выбрана конкретная категория — фильтруем, иначе грузим всё
+    if category_id_str and category_id_str.isdigit():
+        category_id = int(category_id_str)
+        lessons = lesson_service.get_by_category(category_id)
+        selected_category_id = category_id
+    else:
+        lessons = lesson_service.get_all()
+        selected_category_id = None
+
     cat_map = {c.id: c.name for c in categories}
     error = request.query_params.get("error")
     success = request.query_params.get("success")
+
     return templates.TemplateResponse(
         request=request,
         name="lessons.html",
-        context={"lessons": lessons, "cat_map": cat_map, "error": error, "success": success}
+        context={
+            "lessons": lessons,
+            "categories": categories,
+            "cat_map": cat_map,
+            "selected_category_id": selected_category_id,
+            "error": error,
+            "success": success
+        }
     )
 
 @router.get("/lessons/create")

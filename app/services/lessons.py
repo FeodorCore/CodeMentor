@@ -1,3 +1,4 @@
+# app/services/lessons.py
 import sqlite3
 from app.models.lessons import LessonCreate, LessonUpdate, LessonResponse
 
@@ -19,6 +20,20 @@ class LessonService:
             cursor.execute(
                 "SELECT id, category_id, sort_order, title, content "
                 "FROM Lesson ORDER BY category_id ASC, sort_order ASC"
+            )
+            return [LessonResponse(**dict(row)) for row in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    def get_by_category(self, category_id: int) -> list[LessonResponse]:
+        """Получить все уроки из конкретной категории с сортировкой."""
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id, category_id, sort_order, title, content "
+                "FROM Lesson WHERE category_id = ? ORDER BY sort_order ASC, id ASC",
+                (category_id,)
             )
             return [LessonResponse(**dict(row)) for row in cursor.fetchall()]
         finally:
@@ -69,7 +84,7 @@ class LessonService:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
-            # Получаем старые данные
+            # Получаем старые данные в рамках транзакции
             cursor.execute("SELECT id, category_id, sort_order, title, content FROM Lesson WHERE id = ?", (lesson_id,))
             row = cursor.fetchone()
             if not row:
@@ -87,14 +102,12 @@ class LessonService:
                 if old_cat == new_cat:
                     # Перемещение внутри одной категории
                     if new_pos < old_pos:
-                        # Двигаем вверх: сдвигаем диапазон [new_pos, old_pos-1] вниз (+1)
                         cursor.execute(
                             "UPDATE Lesson SET sort_order = sort_order + 1 "
                             "WHERE category_id = ? AND sort_order >= ? AND sort_order < ?",
                             (new_cat, new_pos, old_pos)
                         )
                     elif new_pos > old_pos:
-                        # Двигаем вниз: сдвигаем диапазон [old_pos+1, new_pos] вверх (-1)
                         cursor.execute(
                             "UPDATE Lesson SET sort_order = sort_order - 1 "
                             "WHERE category_id = ? AND sort_order > ? AND sort_order <= ?",
@@ -102,13 +115,11 @@ class LessonService:
                         )
                 else:
                     # Перенос в другую категорию
-                    # 1. Стягиваем хвост в старой категории
                     cursor.execute(
                         "UPDATE Lesson SET sort_order = sort_order - 1 "
                         "WHERE category_id = ? AND sort_order > ?",
                         (old_cat, old_pos)
                     )
-                    # 2. Освобождаем место в новой категории
                     cursor.execute(
                         "UPDATE Lesson SET sort_order = sort_order + 1 "
                         "WHERE category_id = ? AND sort_order >= ?",
@@ -141,9 +152,7 @@ class LessonService:
             if not lesson:
                 return False
 
-            # 1. Удаляем урок
             cursor.execute("DELETE FROM Lesson WHERE id = ?", (lesson_id,))
-            # 2. Стягиваем хвост вверх (> N становятся N-1)
             cursor.execute(
                 "UPDATE Lesson SET sort_order = sort_order - 1 "
                 "WHERE category_id = ? AND sort_order > ?",
