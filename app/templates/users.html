@@ -8,6 +8,7 @@
             <tr>
                 <th>ID</th>
                 <th>Telegram ID</th>
+                <th>Username</th>
                 <th>Админ</th>
                 <th>Действия</th>
             </tr>
@@ -17,6 +18,7 @@
             <tr>
                 <td>{{ u.id }}</td>
                 <td>{{ u.telegram_id }}</td>
+                <td>{{ "@" ~ u.username if u.username else "-" }}</td>
                 <td>{{ "Да" if u.is_admin else "Нет" }}</td>
                 <td><a href="/admin/ui/users/{{ u.id }}/progress">Прогресс</a></td>
             </tr>

@@ -15,7 +15,7 @@ class UserService:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT id, telegram_id, is_admin FROM User ORDER BY id ASC")
+            cursor.execute("SELECT id, telegram_id, username, is_admin FROM User ORDER BY id ASC")
             return [UserResponse(**dict(row)) for row in cursor.fetchall()]
         finally:
             conn.close()
@@ -24,7 +24,7 @@ class UserService:
         conn = self._get_conn()
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT id, telegram_id, is_admin FROM User WHERE id = ?", (user_id,))
+            cursor.execute("SELECT id, telegram_id, username, is_admin FROM User WHERE id = ?", (user_id,))
             row = cursor.fetchone()
             return UserResponse(**dict(row)) if row else None
         finally:

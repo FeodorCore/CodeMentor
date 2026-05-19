@@ -4,6 +4,7 @@ from typing import Optional
 class UserResponse(BaseModel):
     id: int
     telegram_id: int
+    username: Optional[str] = None
     is_admin: bool
 
 class UserProgressResponse(BaseModel):

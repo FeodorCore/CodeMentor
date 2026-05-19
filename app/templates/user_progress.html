@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Прогресс пользователя {{ user.id }}{% endblock %}
 {% block content %}
-<h1>Прогресс пользователя #{{ user.id }} (TG: {{ user.telegram_id }})</h1>
+<h1>Прогресс пользователя #{{ user.id }} (TG: {{ user.telegram_id }}{% if user.username %}, @{{ user.username }}{% endif %})</h1>
 <p><a href="/admin/ui/users">← Назад к списку пользователей</a></p>
 
 <form method="GET" action="/admin/ui/users/{{ user.id }}/progress" style="margin-bottom: 15px;">

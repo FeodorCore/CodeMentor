@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS User (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     telegram_id INTEGER UNIQUE NOT NULL,
+    username TEXT,
     is_admin BOOLEAN DEFAULT FALSE
 );
 
@@ -30,11 +31,11 @@ CREATE TABLE IF NOT EXISTS UserProgress (
     completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE,
     FOREIGN KEY (lesson_id) REFERENCES Lesson(id) ON DELETE CASCADE,
-    -- Уникальность пары user_id + lesson_id, чтобы не дублировать прохождение
     UNIQUE(user_id, lesson_id)
 );
 
 -- Индексы для скорости
 CREATE INDEX IF NOT EXISTS idx_user_telegram_id ON User(telegram_id);
+CREATE INDEX IF NOT EXISTS idx_user_username ON User(username);
 CREATE INDEX IF NOT EXISTS idx_lesson_category ON Lesson(category_id);
 CREATE INDEX IF NOT EXISTS idx_progress_user ON UserProgress(user_id);
