@@ -30,6 +30,39 @@ class UserService:
         finally:
             conn.close()
 
+    def get_by_telegram_id(self, telegram_id: int) -> UserResponse | None:
+        """Получить пользователя по Telegram ID."""
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, telegram_id, username, is_admin FROM User WHERE telegram_id = ?", (telegram_id,))
+            row = cursor.fetchone()
+            return UserResponse(**dict(row)) if row else None
+        finally:
+            conn.close()
+
+    def sync_user(self, telegram_id: int, username: str | None) -> UserResponse:
+        """Регистрация или обновление username при входе в бота."""
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, telegram_id, username, is_admin FROM User WHERE telegram_id = ?", (telegram_id,))
+            row = cursor.fetchone()
+
+            if row:
+                # Если пользователь есть, но username изменился - обновляем
+                if row["username"] != username:
+                    cursor.execute("UPDATE User SET username = ? WHERE telegram_id = ?", (username, telegram_id))
+                    conn.commit()
+                return UserResponse(**dict(row))
+            else:
+                # Если нет - создаем
+                cursor.execute("INSERT INTO User (telegram_id, username) VALUES (?, ?)", (telegram_id, username))
+                conn.commit()
+                return self.get_by_telegram_id(telegram_id)
+        finally:
+            conn.close()
+
 
 class UserProgressService:
     def __init__(self, db_name: str = "app.db"):
@@ -62,5 +95,38 @@ class UserProgressService:
 
             cursor.execute(query, params)
             return [UserProgressResponse(**dict(row)) for row in cursor.fetchall()]
+        finally:
+            conn.close()
+    def mark_completed(self, user_id: int, lesson_id: int) -> bool:
+        """Отметить урок как пройденный (Upsert)."""
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """INSERT INTO UserProgress (user_id, lesson_id, learned) 
+                   VALUES (?, ?, TRUE) 
+                   ON CONFLICT(user_id, lesson_id) 
+                   DO UPDATE SET learned = TRUE, completed_at = CURRENT_TIMESTAMP""",
+                (user_id, lesson_id)
+            )
+            conn.commit()
+            return True
+        finally:
+            conn.close()
+
+    def get_next_lesson_id(self, user_id: int, category_id: int) -> int | None:
+        """Найти ID следующего непройденного урока в категории."""
+        conn = self._get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """SELECT l.id FROM Lesson l
+                   LEFT JOIN UserProgress up ON l.id = up.lesson_id AND up.user_id = ?
+                   WHERE l.category_id = ? AND (up.learned IS NULL OR up.learned = FALSE)
+                   ORDER BY l.sort_order ASC LIMIT 1""",
+                (user_id, category_id)
+            )
+            row = cursor.fetchone()
+            return row["id"] if row else None
         finally:
             conn.close()

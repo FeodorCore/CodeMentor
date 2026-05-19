@@ -1,4 +1,3 @@
-# app/services/categories.py
 import sqlite3
 from app.models.categories import CategoryCreate, CategoryUpdate, CategoryResponse
 

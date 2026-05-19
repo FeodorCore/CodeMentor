@@ -17,3 +17,10 @@ class UserProgressResponse(BaseModel):
     lesson_title: Optional[str] = None
     category_id: Optional[int] = None
     category_name: Optional[str] = None
+
+class UserSync(BaseModel):
+    telegram_id: int
+    username: Optional[str] = None
+
+class ProgressUpdate(BaseModel):
+    lesson_id: int

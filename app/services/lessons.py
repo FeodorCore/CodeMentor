@@ -1,4 +1,3 @@
-# app/services/lessons.py
 import sqlite3
 from app.models.lessons import LessonCreate, LessonUpdate, LessonResponse
 
