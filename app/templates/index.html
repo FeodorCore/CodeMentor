@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Главная{% endblock %}
+{% block content %}
+<h1>Панель администратора</h1>
+<p>Выберите раздел для управления контентом:</p>
+<ul>
+    <li><a href="/admin/ui/categories">Категории</a> — создание и удаление тем</li>
+    <li><a href="/admin/ui/lessons">Уроки</a> — управление статьями (заготовка)</li>
+</ul>
+{% endblock %}

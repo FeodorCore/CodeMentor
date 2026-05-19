@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Админ-панель{% endblock %}</title>
+</head>
+<body>
+    <nav>
+        <a href="/admin/ui/">Главная</a> |
+        <a href="/admin/ui/categories">Категории</a> |
+        <a href="/admin/ui/lessons">Уроки</a>
+    </nav>
+    <hr>
+    {% block content %}{% endblock %}
+</body>
+</html>
