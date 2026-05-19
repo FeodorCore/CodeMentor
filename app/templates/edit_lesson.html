@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}{{ "Редактирование урока" if lesson else "Создание урока" }}{% endblock %}
+{% block content %}
+<h1>{{ "Редактирование урока #" ~ lesson.id if lesson else "Создание нового урока" }}</h1>
+
+{% if error %}
+    <p><strong>Ошибка:</strong> {{ error }}</p>
+{% endif %}
+
+<form method="POST" action="{{ '/admin/ui/lessons/' ~ lesson.id ~ '/edit' if lesson else '/admin/ui/lessons' }}">
+    <label for="category_id">Категория:</label>
+    <select id="category_id" name="category_id" required>
+        {% for cat in categories %}
+            <option value="{{ cat.id }}" {{ "selected" if lesson and lesson.category_id == cat.id else "" }}>
+                {{ cat.name }}
+            </option>
+        {% endfor %}
+    </select>
+    <br><br>
+
+    <label for="sort_order">Позиция (sort_order):</label>
+    <input type="number" id="sort_order" name="sort_order" value="{{ lesson.sort_order if lesson else 1 }}" min="1" required>
+    <p><small>При вставке на позицию N, все уроки с позицией >= N сдвинутся на +1. При удалении хвост стягивается.</small></p>
+    <br>
+
+    <label for="title">Заголовок:</label>
+    <input type="text" id="title" name="title" value="{{ lesson.title if lesson else '' }}" required>
+    <br><br>
+
+    <label for="content">Содержимое:</label><br>
+    <textarea id="content" name="content" rows="10" cols="60" required>{{ lesson.content if lesson else '' }}</textarea>
+    <br><br>
+
+    <button type="submit">{{ "Сохранить изменения" if lesson else "Создать урок" }}</button>
+</form>
+
+<p><a href="/admin/ui/lessons">← Назад к списку</a></p>
+{% endblock %}

@@ -7,8 +7,11 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
 
-from app.views.admin.categories import router as admin_categories_router
+from app.views.admin.categories import router as categories_router
 from app.views.admin.home import router as home_router
+from app.views.admin.lessons import router as lessons_router
 router = APIRouter(prefix="/admin/ui", tags=["Admin Web UI"])
-router.include_router(admin_categories_router)
+
 router.include_router(home_router)
+router.include_router(categories_router)
+router.include_router(lessons_router)

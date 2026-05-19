@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Уроки{% endblock %}
+{% block content %}
+<h1>Управление уроками</h1>
+
+{% if error %}
+    <p><strong>Ошибка:</strong> {{ error }}</p>
+{% endif %}
+{% if success %}
+    <p><strong>Успешно:</strong> Операция выполнена.</p>
+{% endif %}
+
+<p><a href="/admin/ui/lessons/create">Добавить новый урок</a></p>
+
+{% if lessons %}
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Категория</th>
+                <th>Порядок</th>
+                <th>Заголовок</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lesson in lessons %}
+            <tr>
+                <td>{{ lesson.id }}</td>
+                <td>{{ cat_map.get(lesson.category_id, "Неизвестно") }}</td>
+                <td>{{ lesson.sort_order }}</td>
+                <td>{{ lesson.title }}</td>
+                <td>
+                    <a href="/admin/ui/lessons/{{ lesson.id }}/edit">Редактировать</a> |
+                    <form method="POST" action="/admin/ui/lessons/{{ lesson.id }}/delete" style="display:inline;">
+                        <button type="submit" onclick="return confirm('Удалить урок?');">Удалить</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Уроков пока нет.</p>
+{% endif %}
+{% endblock %}
