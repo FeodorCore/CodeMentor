@@ -1,21 +1,11 @@
-# app/views/admin.py
-from pathlib import Path
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
 from app.services.categories import CategoryService
 from app.models.categories import CategoryCreate, CategoryUpdate
-
-router = APIRouter(prefix="/admin/ui", tags=["Admin Web UI"])
-
-TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
-templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+from app.views.admin import templates
+router = APIRouter()
 
 category_service = CategoryService()
-
-@router.get("/")
-async def index(request: Request):
-    return templates.TemplateResponse(request=request, name="index.html", context={})
 
 @router.get("/categories")
 async def categories_page(request: Request):
