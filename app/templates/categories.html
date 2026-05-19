@@ -30,6 +30,7 @@
                 <td>{{ cat.id }}</td>
                 <td>{{ cat.name }}</td>
                 <td>
+                    <a href="/admin/ui/categories/{{ cat.id }}/edit">Редактировать</a> |
                     <form method="POST" action="/admin/ui/categories/{{ cat.id }}/delete" style="display:inline;">
                         <button type="submit" onclick="return confirm('Удалить категорию? Все привязанные уроки также будут удалены.');">Удалить</button>
                     </form>

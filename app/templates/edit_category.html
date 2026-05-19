@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Редактирование категории{% endblock %}
+{% block content %}
+<h1>Редактирование категории #{{ category.id }}</h1>
+
+{% if error %}
+    <p><strong>Ошибка:</strong> {{ error }}</p>
+{% endif %}
+
+<form method="POST" action="/admin/ui/categories/{{ category.id }}/edit">
+    <label for="name">Название:</label>
+    <input type="text" id="name" name="name" value="{{ category.name }}" required>
+    <button type="submit">Сохранить</button>
+</form>
+
+<p><a href="/admin/ui/categories">← Назад к списку</a></p>
+{% endblock %}
