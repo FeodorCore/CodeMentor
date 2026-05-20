@@ -1,13 +1,13 @@
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
 from app.bot.api_client import ApiClient
-from app.bot.keyboards.inline import get_categories_kb, get_back_to_categories_kb
+from app.bot.keyboards.inline import get_categories_kb
 
 router = Router(name="categories")
 
 
-@router.callback_query(lambda c: c.data == "menu:categories")
+@router.callback_query(F.data == "menu:categories")
 async def show_categories(callback: CallbackQuery, api: ApiClient):
     """Показать список всех категорий."""
     await callback.answer("Загружаю категории...")

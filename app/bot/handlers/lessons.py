@@ -1,4 +1,4 @@
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.types import CallbackQuery
 
 from app.bot.api_client import ApiClient
@@ -7,7 +7,7 @@ from app.bot.keyboards.inline import get_lessons_kb, get_lesson_nav_kb, get_back
 router = Router(name="lessons")
 
 
-@router.callback_query(lambda c: c.data and c.data.startswith("category:"))
+@router.callback_query(F.data.startswith("category:"))
 async def show_lessons(callback: CallbackQuery, api: ApiClient):
     """Показать список уроков в выбранной категории с отметками пройденных."""
     category_id = int(callback.data.split(":")[1])
@@ -36,7 +36,7 @@ async def show_lessons(callback: CallbackQuery, api: ApiClient):
     )
 
 
-@router.callback_query(lambda c: c.data and c.data.startswith("lesson:"))
+@router.callback_query(F.data.startswith("lesson:"))
 async def show_lesson_content(callback: CallbackQuery, api: ApiClient):
     """Показать содержимое урока."""
     lesson_id = int(callback.data.split(":")[1])
