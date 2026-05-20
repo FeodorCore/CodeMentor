@@ -2,3 +2,7 @@ pydantic
 fastapi
 uvicorn
 jinja2
+python-multipart
+aiogram
+dotenv
+httpx

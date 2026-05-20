@@ -20,8 +20,7 @@ async def show_categories(callback: CallbackQuery, api: ApiClient):
 
     if not categories:
         await callback.message.edit_text(
-            "📭 Категорий пока нет.\nАдминистратор ещё не добавил материалы.",
-            reply_markup=get_back_to_categories_kb()
+            "📭 Категорий пока нет.\nАдминистратор ещё не добавил материалы."
         )
         return
 
