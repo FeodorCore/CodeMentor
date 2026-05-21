@@ -106,3 +106,12 @@ class ApiClient:
             return None
         response.raise_for_status()
         return LessonDTO(**response.json())
+
+    async def update_progress(self, telegram_id: int, lesson_id: int) -> bool:
+        """Сохранить прогресс (отметить урок как пройденный)."""
+        client = await self._get_client()
+        response = await client.post(f"/bot/users/{telegram_id}/progress", json={
+            "lesson_id": lesson_id
+        })
+        response.raise_for_status()
+        return True

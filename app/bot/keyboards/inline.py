@@ -49,16 +49,21 @@ def get_lessons_kb(
     ])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
-
-def get_lesson_nav_kb(lesson_id: int, category_id: int) -> InlineKeyboardMarkup:
-    """Навигация после просмотра урока (только возврат к списку)."""
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="◀️ К списку уроков", callback_data=f"category:{category_id}")],
-    ])
-
-
 def get_back_to_categories_kb() -> InlineKeyboardMarkup:
     """Кнопка возврата к категориям."""
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="◀️ К категориям", callback_data="menu:categories")],
+    ])
+
+def get_lesson_nav_kb(lesson_id: int, category_id: int) -> InlineKeyboardMarkup:
+    """Навигация после просмотра урока (добавлена кнопка закрепления)."""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🧠 Закрепить тему (Нейросеть)", callback_data=f"consolidate:{lesson_id}:{category_id}")],
+        [InlineKeyboardButton(text="◀️ К списку уроков", callback_data=f"category:{category_id}")],
+    ])
+
+def get_consolidation_kb(lesson_id: int, category_id: int) -> InlineKeyboardMarkup:
+    """Клавиатура во время диалога с нейросетью."""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Разобрался с темой", callback_data=f"finish_consolidate:{lesson_id}:{category_id}")],
     ])

@@ -14,9 +14,13 @@ async def cmd_start(message: Message, api: ApiClient, state: FSMContext):
     """Обработчик /start — регистрация и приветствие."""
     await state.clear()
 
-    tg_id = message.from_user.id
-    username = message.from_user.username
+    if message.from_user:
+        tg_id = message.from_user.id
+        username = message.from_user.username
 
+    else:
+        tg_id = 0
+        username = None
     try:
         user = await api.sync_user(telegram_id=tg_id, username=username)
     except Exception as e:
@@ -28,11 +32,7 @@ async def cmd_start(message: Message, api: ApiClient, state: FSMContext):
         f"Я бот для обучения. Выбирай категорию и читай материалы.\n\n"
         f"Твой ID в системе: <code>{user.id}</code>"
     )
-    await message.answer(
-        greeting,
-        parse_mode="HTML",
-        reply_markup=get_main_menu_kb()
-    )
+    await message.answer(greeting, parse_mode="HTML", reply_markup=get_main_menu_kb())
 
 
 @router.message(Command("menu"))
@@ -40,18 +40,18 @@ async def cmd_menu(message: Message, state: FSMContext):
     """Команда /menu — показать главное меню."""
     await state.clear()
     await message.answer(
-        "📋 <b>Главное меню</b>",
-        parse_mode="HTML",
-        reply_markup=get_main_menu_kb()
+        "📋 <b>Главное меню</b>", parse_mode="HTML", reply_markup=get_main_menu_kb()
     )
 
 
 @router.callback_query(lambda c: c.data == "menu:main")
 async def callback_main_menu(callback: CallbackQuery):
     """Возврат в главное меню."""
-    await callback.message.edit_text(
-        "📋 <b>Главное меню</b>",
-        parse_mode="HTML",
-        reply_markup=get_main_menu_kb()
-    )
+
+    if isinstance(callback.message, Message):
+        await callback.message.edit_text(
+            "📋 <b>Главное меню</b>", parse_mode="HTML", reply_markup=get_main_menu_kb()
+        )
+
     await callback.answer()
+
