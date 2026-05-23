@@ -15,7 +15,7 @@ question_service = QuestionService()
 
 
 def _parse_questions_json(questions_json: str) -> list[QuestionCreate]:
-    """Строгая валидация: ровно 1 вопрос, ровно 2 ответа, минимум 1 правильный."""
+    """Строгая валидация: ровно 1 вопрос, минимум 2 ответа, минимум 1 правильный."""
     if not questions_json or questions_json.strip() in ("", "[]", "null"):
         raise ValueError("Урок должен содержать ровно 1 вопрос.")
     try:
@@ -32,11 +32,14 @@ def _parse_questions_json(questions_json: str) -> list[QuestionCreate]:
         raise ValueError("Текст вопроса не может быть пустым.")
 
     answers_raw = q_data.get("answers", [])
+    if len(answers_raw) < 2:
+        raise ValueError("Вопрос должен содержать минимум 2 варианта ответа.")
+
     answers = []
     for a_idx, a_data in enumerate(answers_raw):
         a_text = a_data.get("text", "").strip()
         if not a_text:
-            continue
+            raise ValueError(f"Вариант ответа {a_idx + 1} не может быть пустым.")
         answers.append(
             AnswerOptionCreate(
                 text=a_text,
@@ -45,8 +48,6 @@ def _parse_questions_json(questions_json: str) -> list[QuestionCreate]:
             )
         )
 
-    if len(answers) != 2:
-        raise ValueError("Вопрос должен содержать ровно 2 варианта ответа.")
     if not any(a.is_correct for a in answers):
         raise ValueError("В вопросе не отмечен правильный ответ.")
 
@@ -57,7 +58,6 @@ def _parse_questions_json(questions_json: str) -> list[QuestionCreate]:
 async def lessons_page(request: Request):
     category_id_str = request.query_params.get("category_id")
     categories = category_service.get_all()
-
     if category_id_str and category_id_str.isdigit():
         category_id = int(category_id_str)
         lessons = lesson_service.get_by_category(category_id)
