@@ -40,11 +40,18 @@ async def start_lesson_qa(
         lesson = await api.get_lesson(lesson_id)
     except Exception:
         lesson = None
+
+    # Сохраняем контекст теста ДО очистки стейта
+    data = await state.get_data()
+    quiz_ctx = data.get("last_quiz_context")
+
     await state.clear()
     await state.set_state(AIChatFSM.lesson_qa)
+
     ctx = {
         "lesson_title": lesson.title if lesson else "Урок",
         "lesson_content": lesson.content if lesson else "",
+        "quiz_context": quiz_ctx,  # <-- передаём контекст ответа
     }
     system_prompt = LLMService.get_prompt("lesson_qa", ctx)
     history = [{"role": "system", "content": system_prompt}]
@@ -55,7 +62,7 @@ async def start_lesson_qa(
     await state.update_data(history=history)
     if isinstance(callback.message, Message):
         await callback.message.answer(
-            f"🤖 <b>Вопрос по уроку:</b>\n{reply}",
+            f"🤖 <b>Разбор ответа:</b>\n{reply}",
             parse_mode="HTML",
             reply_markup=get_ai_chat_kb("lesson_qa"),
         )

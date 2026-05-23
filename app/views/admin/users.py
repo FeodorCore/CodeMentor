@@ -9,14 +9,14 @@ user_service = UserService()
 progress_service = UserProgressService()
 category_service = CategoryService()
 
+
 @router.get("/users")
 async def users_page(request: Request):
     users = user_service.get_all()
     return templates.TemplateResponse(
-        request=request,
-        name="users.html",
-        context={"users": users}
+        request=request, name="users.html", context={"users": users}
     )
+
 
 @router.get("/users/{user_id}/progress")
 async def user_progress_page(request: Request, user_id: int):
@@ -29,10 +29,10 @@ async def user_progress_page(request: Request, user_id: int):
 
     if category_id_str and category_id_str.isdigit():
         category_id = int(category_id_str)
-        progress = progress_service.get_by_user(user_id, category_id)
+        progress_data = progress_service.get_detailed_progress(user_id, category_id)
         selected_category_id = category_id
     else:
-        progress = progress_service.get_by_user(user_id)
+        progress_data = progress_service.get_detailed_progress(user_id)
         selected_category_id = None
 
     return templates.TemplateResponse(
@@ -40,8 +40,9 @@ async def user_progress_page(request: Request, user_id: int):
         name="user_progress.html",
         context={
             "user": user,
-            "progress": progress,
+            "progress_data": progress_data,
             "categories": categories,
-            "selected_category_id": selected_category_id
-        }
+            "selected_category_id": selected_category_id,
+        },
     )
+

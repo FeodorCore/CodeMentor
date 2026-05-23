@@ -27,7 +27,6 @@ async def show_lessons(callback: CallbackQuery, api: ApiClient, state: FSMContex
         if isinstance(callback.message, Message):
             await callback.message.edit_text(f"❌ Ошибка: {e}")
         return
-
     if not lessons:
         if isinstance(callback.message, Message):
             await callback.message.edit_text(
@@ -35,7 +34,6 @@ async def show_lessons(callback: CallbackQuery, api: ApiClient, state: FSMContex
                 reply_markup=get_back_to_cats_kb(),
             )
         return
-
     if isinstance(callback.message, Message):
         await callback.message.edit_text(
             "📄 <b>Выберите урок:</b>\n",
@@ -69,17 +67,14 @@ async def show_lesson(callback: CallbackQuery, api: ApiClient, state: FSMContext
         if isinstance(callback.message, Message):
             await callback.message.edit_text(f"❌ Ошибка: {e}")
         return
-
     if not lesson:
         if isinstance(callback.message, Message):
             await callback.message.edit_text(
                 "❌ Урок не найден.", reply_markup=get_back_to_cats_kb()
             )
         return
-
-    text = f"📖 <b>{lesson.title}</b>\n\n{lesson.content}"
+    text = f"📖 <b>{lesson.title}</b>\n{lesson.content}"
     kb = get_lesson_actions_kb(lesson.id, lesson.category_id)
-
     if isinstance(callback.message, Message):
         if len(text) > 4000:
             await callback.message.edit_text(text[:4000], parse_mode="HTML")
@@ -95,17 +90,14 @@ async def start_quiz(callback: CallbackQuery, api: ApiClient, state: FSMContext)
     _, _, lesson_id_str, category_id_str = callback.data.split(":")
     lesson_id, category_id = int(lesson_id_str), int(category_id_str)
     tg_id = callback.from_user.id
-
     await callback.answer("Подготовка теста...")
     try:
         questions = await api.get_questions(lesson_id)
-        # По ТЗ: learned = true сразу при нажатии "Ознакомился"
         await api.update_progress(tg_id, lesson_id)
     except Exception as e:
         if isinstance(callback.message, Message):
             await callback.message.edit_text(f"❌ Ошибка загрузки теста: {e}")
         return
-
     if not questions:
         if isinstance(callback.message, Message):
             await callback.message.edit_text(
@@ -113,12 +105,10 @@ async def start_quiz(callback: CallbackQuery, api: ApiClient, state: FSMContext)
                 reply_markup=get_after_quiz_kb(True, lesson_id, category_id),
             )
         return
-
     await state.set_state(QuizFSM.active)
     await state.update_data(
         questions=questions, current_idx=0, lesson_id=lesson_id, category_id=category_id
     )
-
     q = questions[0]
     if isinstance(callback.message, Message):
         await callback.message.edit_text(
@@ -142,7 +132,6 @@ async def handle_quiz_answer(
     lesson_id = int(lesson_id_str)
     category_id = int(category_id_str)
     tg_id = callback.from_user.id
-
     await callback.answer()
     try:
         await api.submit_answer(tg_id, ans_id, is_correct)
@@ -152,6 +141,27 @@ async def handle_quiz_answer(
     data = await state.get_data()
     questions = data.get("questions", [])
     idx = data.get("current_idx", 0)
+
+    # === СОХРАНЯЕМ КОНТЕКСТ ВОПРОСА ДЛЯ ИИ ===
+    q = questions[idx] if idx < len(questions) else None
+    user_ans_text = "Не указан"
+    correct_ans_text = "Не указан"
+    if q:
+        for a in q.get("answers", []):
+            if a["id"] == ans_id:
+                user_ans_text = a["text"]
+            if a.get("is_correct"):
+                correct_ans_text = a["text"]
+
+    await state.update_data(
+        last_quiz_context={
+            "question": q["text"] if q else "",
+            "user_answer": user_ans_text,
+            "correct_answer": correct_ans_text,
+            "is_correct": is_correct,
+        }
+    )
+    # ========================================
 
     msg = (
         "✅ Верно! Отличная работа."
@@ -165,7 +175,7 @@ async def handle_quiz_answer(
         q = questions[next_idx]
         if isinstance(callback.message, Message):
             await callback.message.edit_text(
-                f"{msg}\n\n📝 <b>Вопрос {next_idx + 1}/{len(questions)}:</b>\n{q['text']}",
+                f"{msg}\n📝 <b>Вопрос {next_idx + 1}/{len(questions)}:</b>\n{q['text']}",
                 parse_mode="HTML",
                 reply_markup=get_quiz_option_kb(
                     q["id"], q["answers"], lesson_id, category_id
@@ -175,7 +185,7 @@ async def handle_quiz_answer(
         await state.clear()
         if isinstance(callback.message, Message):
             await callback.message.edit_text(
-                f"{msg}\n\n🎉 Тест завершён! Прогресс сохранён.",
+                f"{msg}\n🎉 Тест завершён! Прогресс сохранён.",
                 parse_mode="HTML",
                 reply_markup=get_after_quiz_kb(is_correct, lesson_id, category_id),
             )

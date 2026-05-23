@@ -4,41 +4,69 @@
 <h1>Прогресс пользователя #{{ user.id }} (TG: {{ user.telegram_id }}{% if user.username %}, @{{ user.username }}{% endif %})</h1>
 <p><a href="/admin/ui/users">← Назад к списку пользователей</a></p>
 
-<form method="GET" action="/admin/ui/users/{{ user.id }}/progress" style="margin-bottom: 15px;">
-    <label for="category_filter">Фильтр по категории:</label>
-    <select id="category_filter" name="category_id">
+<form method="GET" action="/admin/ui/users/{{ user.id }}/progress" style="margin-bottom: 20px; padding: 10px; background: #f9f9f9; border-radius: 6px;">
+    <label for="category_filter"><b>Фильтр по категории:</b></label>
+    <select id="category_filter" name="category_id" style="padding: 5px; margin-left: 5px;">
         <option value="">Все категории</option>
         {% for cat in categories %}
-            <option value="{{ cat.id }}" {{ "selected" if selected_category_id == cat.id else "" }}>
-                {{ cat.name }}
-            </option>
+        <option value="{{ cat.id }}" {{ "selected" if selected_category_id == cat.id else "" }}>
+            {{ cat.name }}
+        </option>
         {% endfor %}
     </select>
-    <button type="submit">Показать</button>
+    <button type="submit" style="padding: 5px 10px; cursor: pointer;">Показать</button>
 </form>
 
-{% if progress %}
-    <table border="1" cellpadding="5" cellspacing="0">
-        <thead>
-            <tr>
-                <th>Категория</th>
-                <th>Урок</th>
-                <th>Изучено</th>
-                <th>Дата завершения</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for p in progress %}
-            <tr>
-                <td>{{ p.category_name }}</td>
-                <td>{{ p.lesson_title }}</td>
-                <td>{{ "Да" if p.learned else "Нет" }}</td>
-                <td>{{ p.completed_at if p.completed_at else "-" }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+{% if progress_data %}
+    {% for lesson in progress_data %}
+        <div style="margin-bottom: 25px; border: 1px solid #ddd; padding: 15px; border-radius: 8px; background: #fff;">
+            <h3 style="margin-top: 0; color: #333;">
+                📂 {{ lesson.category_name }} → 📄 {{ lesson.lesson_title }}
+                <span style="font-size: 0.75em; color: #777; font-weight: normal;">(Порядок: {{ lesson.sort_order }})</span>
+            </h3>
+            
+            <p style="margin: 5px 0 15px 0;">
+                <strong>Статус:</strong> 
+                <span style="color: {{ 'green' if lesson.learned else 'orange' }}; font-weight: bold;">
+                    {{ "✅ Изучено" if lesson.learned else "⏳ В процессе / Не изучено" }}
+                </span>
+                {% if lesson.completed_at %} | <strong>Завершено:</strong> {{ lesson.completed_at }}{% endif %}
+            </p>
+
+            {% if lesson.answers %}
+                <h4 style="margin-bottom: 8px; color: #555;">📝 Ответы на тесты:</h4>
+                <table border="1" cellpadding="8" cellspacing="0" style="width: 100%; border-collapse: collapse; font-size: 0.95em;">
+                    <thead>
+                        <tr style="background: #f4f4f4; text-align: left;">
+                            <th style="width: 30%;">Вопрос</th>
+                            <th style="width: 20%;">Ответ пользователя</th>
+                            <th style="width: 20%;">Правильный ответ</th>
+                            <th style="width: 15%;">Результат</th>
+                            <th style="width: 15%;">Время</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ans in lesson.answers %}
+                        <tr style="vertical-align: top;">
+                            <td>{{ ans.question_text }}</td>
+                            <td>{{ ans.user_answer_text }}</td>
+                            <td>{{ ans.correct_answer_text or "—" }}</td>
+                            <td style="text-align: center; font-weight: bold; color: {{ 'green' if ans.is_correct else 'red' }};">
+                                {{ "✅ Верно" if ans.is_correct else "❌ Неверно" }}
+                            </td>
+                            <td style="font-size: 0.85em; color: #666;">{{ ans.answered_at or "—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p style="color: #888; font-style: italic; margin: 0;">Тесты по этому уроку ещё не проходились.</p>
+            {% endif %}
+        </div>
+    {% endfor %}
 {% else %}
-    <p>Прогресс не найден или пользователь ещё не начинал обучение.</p>
+    <div style="padding: 20px; background: #fff3cd; border: 1px solid #ffeeba; border-radius: 6px; color: #856404;">
+        Прогресс не найден. Пользователь ещё не открывал уроки или не выбран фильтр с данными.
+    </div>
 {% endif %}
 {% endblock %}
