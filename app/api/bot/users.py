@@ -21,7 +21,9 @@ def get_bot_user(telegram_id: int):
     """Получить профиль пользователя по Telegram ID."""
     user = user_service.get_by_telegram_id(telegram_id)
     if not user:
-        raise HTTPException(status_code=404, detail="Пользователь не найден. Сначала вызовите /sync")
+        raise HTTPException(
+            status_code=404, detail="Пользователь не найден. Сначала вызовите /sync"
+        )
     return user
 
 
@@ -48,3 +50,13 @@ def get_next_lesson(telegram_id: int, category_id: int):
 
     next_lesson_id = progress_service.get_next_lesson_id(user.id, category_id)
     return {"next_lesson_id": next_lesson_id}
+
+
+@router.get("/users/{telegram_id}/progress/{category_id}")
+def get_user_progress(telegram_id: int, category_id: int):
+    user = user_service.get_by_telegram_id(telegram_id)
+    if not user:
+        raise HTTPException(404, detail="Пользователь не найден")
+    progress = progress_service.get_by_user(user.id, category_id)
+    completed_ids = [p.lesson_id for p in progress if p.learned]
+    return {"completed_lessons": completed_ids}

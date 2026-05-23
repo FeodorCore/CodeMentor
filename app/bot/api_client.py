@@ -6,6 +6,7 @@ from dataclasses import dataclass
 @dataclass
 class UserDTO:
     """DTO пользователя от API."""
+
     id: int
     telegram_id: int
     username: Optional[str]
@@ -15,6 +16,7 @@ class UserDTO:
 @dataclass
 class CategoryDTO:
     """DTO категории."""
+
     id: int
     name: str
 
@@ -22,6 +24,7 @@ class CategoryDTO:
 @dataclass
 class LessonDTO:
     """DTO урока."""
+
     id: int
     category_id: int
     sort_order: int
@@ -38,10 +41,7 @@ class ApiClient:
 
     async def _get_client(self) -> httpx.AsyncClient:
         if self._client is None or self._client.is_closed:
-            self._client = httpx.AsyncClient(
-                base_url=self.base_url,
-                timeout=10.0
-            )
+            self._client = httpx.AsyncClient(base_url=self.base_url, timeout=10.0)
         return self._client
 
     async def close(self):
@@ -53,10 +53,9 @@ class ApiClient:
     async def sync_user(self, telegram_id: int, username: Optional[str]) -> UserDTO:
         """Регистрация/синхронизация пользователя."""
         client = await self._get_client()
-        response = await client.post("/bot/users/sync", json={
-            "telegram_id": telegram_id,
-            "username": username
-        })
+        response = await client.post(
+            "/bot/users/sync", json={"telegram_id": telegram_id, "username": username}
+        )
         response.raise_for_status()
         data = response.json()
         return UserDTO(**data)
@@ -70,7 +69,9 @@ class ApiClient:
         response.raise_for_status()
         return UserDTO(**response.json())
 
-    async def get_completed_lessons(self, telegram_id: int, category_id: int) -> list[int]:
+    async def get_completed_lessons(
+        self, telegram_id: int, category_id: int
+    ) -> list[int]:
         """Получить список ID пройденных уроков в категории."""
         client = await self._get_client()
         response = await client.get(f"/bot/users/{telegram_id}/progress/{category_id}")
@@ -110,8 +111,39 @@ class ApiClient:
     async def update_progress(self, telegram_id: int, lesson_id: int) -> bool:
         """Сохранить прогресс (отметить урок как пройденный)."""
         client = await self._get_client()
-        response = await client.post(f"/bot/users/{telegram_id}/progress", json={
-            "lesson_id": lesson_id
-        })
+        response = await client.post(
+            f"/bot/users/{telegram_id}/progress", json={"lesson_id": lesson_id}
+        )
         response.raise_for_status()
         return True
+
+    async def get_completed_lessons(
+        self, telegram_id: int, category_id: int
+    ) -> list[int]:
+        client = await self._get_client()
+        response = await client.get(f"/bot/users/{telegram_id}/progress/{category_id}")
+        if response.status_code == 404:
+            return []
+        response.raise_for_status()
+        return response.json().get("completed_lessons", [])
+
+    async def get_questions(self, lesson_id: int) -> list[dict]:
+        client = await self._get_client()
+        response = await client.get(f"/bot/lessons/{lesson_id}/questions")
+        response.raise_for_status()
+        return response.json()
+
+    async def submit_answer(
+        self, telegram_id: int, answer_option_id: int, is_correct: bool
+    ) -> dict:
+        client = await self._get_client()
+        response = await client.post(
+            "/bot/users/answers",
+            json={
+                "telegram_id": telegram_id,
+                "answer_option_id": answer_option_id,
+                "is_correct": is_correct,
+            },
+        )
+        response.raise_for_status()
+        return response.json()
