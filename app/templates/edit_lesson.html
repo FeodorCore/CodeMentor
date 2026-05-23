@@ -1,176 +1,177 @@
 {% extends "base.html" %}
 {% block title %}{{ "Редактирование урока" if lesson else "Создание урока" }}{% endblock %}
+{% block header_title %}{{ "Редактирование урока #" ~ lesson.id if lesson else "Создание нового урока" }}{% endblock %}
 {% block content %}
-<h1>{{ "Редактирование урока #" ~ lesson.id if lesson else "Создание нового урока" }}</h1>
-<div id="frontend-error" style="display:none; background:#ffe6e6; color:#b30000; padding:10px; border-radius:6px; margin-bottom:15px;"></div>
-{% if error %}
-<div style="background:#ffe6e6; color:#b30000; padding:10px; border-radius:6px; margin-bottom:15px;">
-    <strong>⚠️ Ошибка сохранения:</strong> {{ error }}
+<div id="frontend-error" class="hidden mb-6 p-4 rounded-lg bg-danger-50 border border-danger-200 text-danger-700 flex items-start gap-3 shadow-sm">
+    <i data-lucide="alert-circle" class="w-5 h-5 mt-0.5 flex-shrink-0"></i>
+    <span id="err-text"></span>
 </div>
-{% endif %}
-<form method="POST" action="{{ '/admin/ui/lessons/' ~ lesson.id ~ '/edit' if lesson else '/admin/ui/lessons' }}" id="lessonForm">
-    <label for="category_id">Категория:</label>
-    <select id="category_id" name="category_id" required>
-        {% for cat in categories %}
-        <option value="{{ cat.id }}"
-            {{ "selected" if (form_data and form_data.category_id == cat.id) or (lesson and lesson.category_id == cat.id) else "" }}>
-            {{ cat.name }}
-        </option>
-        {% endfor %}
-    </select>
-    <br><br>
-    <label for="sort_order">Позиция (sort_order):</label>
-    <input type="number" id="sort_order" name="sort_order"
-        value="{{ form_data.sort_order if form_data else (lesson.sort_order if lesson else 1) }}"
-        min="1" required>
-    <p><small>При вставке на позицию N, все уроки с позицией >= N сдвинутся на +1.</small></p>
-    <br>
-    <label for="title">Заголовок:</label>
-    <input type="text" id="title" name="title"
-        value="{{ form_data.title if form_data else (lesson.title if lesson else '') }}"
-        required style="width:80%;">
-    <br><br>
-    <label for="content">Содержимое:</label><br>
-    <textarea id="content" name="content" rows="10" cols="80" required>{{ form_data.content if form_data else (lesson.content if lesson else '') }}</textarea>
-    <br><br>
-    <fieldset style="border: 2px solid #4CAF50; padding: 15px; margin-top: 20px; border-radius: 8px;">
-        <legend><strong>Вопрос для закрепления</strong></legend>
-        <p><small>Заполните текст вопроса и варианты ответа. Обязательно отметьте один правильный вариант. Можно добавлять или удалять варианты (минимум 2).</small></p>
 
-        <label for="q-text">Текст вопроса:</label><br>
-        <input type="text" class="q-text" placeholder="Текст вопроса..." style="width:95%; padding:6px; margin-bottom:12px; border:1px solid #ccc; border-radius:4px;">
-        <br>
-        <div id="answers-container"></div>
-        <button type="button" id="add-answer-btn" style="margin-top:10px; padding:6px 12px; background:#2196F3; color:white; border:none; border-radius:4px; cursor:pointer;">➕ Добавить вариант ответа</button>
-    </fieldset>
+<form method="POST" action="{{ '/admin/ui/lessons/' ~ lesson.id ~ '/edit' if lesson else '/admin/ui/lessons' }}" id="lessonForm" class="space-y-6">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div>
+                <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Категория</label>
+                <select id="category_id" name="category_id" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none bg-white">
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {{ "selected" if (form_data and form_data.category_id == cat.id) or (lesson and lesson.category_id == cat.id) else "" }}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-1">Позиция</label>
+                <input type="number" id="sort_order" name="sort_order" value="{{ form_data.sort_order if form_data else (lesson.sort_order if lesson else 1) }}" min="1" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                <p class="text-xs text-gray-500 mt-1">При вставке на позицию N, уроки ≥ N сдвинутся.</p>
+            </div>
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Заголовок</label>
+                <input type="text" id="title" name="title" value="{{ form_data.title if form_data else (lesson.title if lesson else '') }}" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label for="content" class="block text-sm font-medium text-gray-700 mb-1">Содержимое (HTML разрешён)</label>
+            <textarea id="content" name="content" rows="12" required
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none font-mono text-sm">{{ form_data.content if form_data else (lesson.content if lesson else '') }}</textarea>
+        </div>
+
+        <div class="border-t border-gray-200 pt-6">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="help-circle" class="w-5 h-5 text-primary-600"></i>
+                <h3 class="text-lg font-semibold text-gray-900">Вопрос для закрепления</h3>
+            </div>
+            <p class="text-sm text-gray-500 mb-4">Заполните текст вопроса и варианты ответа. Отметьте ровно один правильный вариант. Минимум 2 варианта.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Текст вопроса</label>
+                    <input type="text" id="q-text" placeholder="Введите вопрос..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none">
+                </div>
+                <div id="answers-container" class="space-y-2"></div>
+                <button type="button" id="add-answer-btn" class="inline-flex items-center px-3 py-2 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg hover:bg-primary-100 transition">
+                    <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Добавить вариант
+                </button>
+            </div>
+        </div>
+    </div>
+
     <input type="hidden" name="questions_json" id="questions_json" value="">
-    <br><br>
-    <button type="submit" style="padding: 10px 24px; font-size: 16px; background:#2196F3; color:white; border:none; cursor:pointer; border-radius:4px;">
-        {{ "Сохранить изменения" if lesson else "Создать урок" }}
-    </button>
+    <div class="flex items-center gap-3">
+        <button type="submit" class="px-6 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center gap-2 shadow-sm font-medium">
+            <i data-lucide="save" class="w-4 h-4"></i> {{ "Сохранить изменения" if lesson else "Создать урок" }}
+        </button>
+        <a href="/admin/ui/lessons" class="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">Отмена</a>
+    </div>
 </form>
-<p><a href="/admin/ui/lessons">← Назад к списку</a></p>
 
 <script>
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text || '';
-    return div.innerHTML.replace(/"/g, '&quot;');
-}
-
-function addAnswerBlock(container, text = '', correct = false) {
-    const block = document.createElement('div');
-    block.className = 'answer-block';
-    block.style.cssText = 'display:flex; align-items:center; margin-bottom:8px; gap:8px;';
-    block.innerHTML = `
-        <input type="checkbox" class="a-correct" ${correct ? 'checked' : ''} title="Правильный ответ" style="width:18px; height:18px; cursor:pointer;">
-        <input type="text" class="a-text" placeholder="Вариант ответа..." value="${escapeHtml(text)}" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
-        <button type="button" class="remove-answer-btn" style="background:#ff4d4d; color:white; border:none; border-radius:4px; padding:4px 8px; cursor:pointer;">❌</button>
-    `;
-    container.appendChild(block);
-
-    // Взаимоисключающий выбор правильного ответа
-    const checkbox = block.querySelector('.a-correct');
-    checkbox.addEventListener('change', function() {
-        if (this.checked) {
-            document.querySelectorAll('.a-correct').forEach(other => {
-                if (other !== this) other.checked = false;
-            });
-        }
-    });
-
-    // Логика удаления
-    block.querySelector('.remove-answer-btn').addEventListener('click', function() {
-        const blocks = document.querySelectorAll('.answer-block');
-        if (blocks.length > 2) {
-            block.remove();
-            updateRemoveButtons();
-        } else {
-            alert('Минимум 2 варианта ответа!');
-        }
-    });
-}
-
-function updateRemoveButtons() {
-    const blocks = document.querySelectorAll('.answer-block');
-    const btns = document.querySelectorAll('.remove-answer-btn');
-    btns.forEach(btn => {
-        btn.disabled = blocks.length <= 2;
-        btn.style.opacity = blocks.length <= 2 ? '0.5' : '1';
-        btn.style.cursor = blocks.length <= 2 ? 'not-allowed' : 'pointer';
-    });
-}
-
-function renderAnswers(answers = [{text: '', correct: false}, {text: '', correct: false}]) {
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('lessonForm');
+    const qTextEl = document.getElementById('q-text');
     const container = document.getElementById('answers-container');
-    container.innerHTML = '';
-    answers.forEach(ans => addAnswerBlock(container, ans.text, ans.correct));
-    updateRemoveButtons();
-}
-
-document.getElementById('add-answer-btn').addEventListener('click', function() {
-    const container = document.getElementById('answers-container');
-    addAnswerBlock(container);
-    updateRemoveButtons();
-});
-
-function validateAndCollect() {
-    const qText = document.querySelector('.q-text').value.trim();
-    if (!qText) throw new Error("Текст вопроса не может быть пустым.");
-
-    const aBlocks = document.querySelectorAll('.answer-block');
-    if (aBlocks.length < 2) throw new Error("Минимум 2 варианта ответа.");
-
-    const answers = [];
-    let hasCorrect = false;
-    aBlocks.forEach((block, idx) => {
-        const aText = block.querySelector('.a-text').value.trim();
-        const isCorrect = block.querySelector('.a-correct').checked;
-        if (!aText) throw new Error(`Вариант ответа ${idx + 1} не может быть пустым.`);
-        answers.push({ text: aText, is_correct: isCorrect, sort_order: idx });
-        if (isCorrect) hasCorrect = true;
-    });
-
-    if (!hasCorrect) throw new Error("Не отмечен правильный ответ.");
-    return [{ text: qText, sort_order: 0, answers: answers }];
-}
-
-document.getElementById('lessonForm').addEventListener('submit', function(e) {
+    const hiddenInput = document.getElementById('questions_json');
     const errBox = document.getElementById('frontend-error');
-    errBox.style.display = 'none';
-    try {
-        const questions = validateAndCollect();
-        document.getElementById('questions_json').value = JSON.stringify(questions);
-    } catch (err) {
-        e.preventDefault();
-        errBox.textContent = '⚠️ ' + err.message;
-        errBox.style.display = 'block';
-        window.scrollTo(0, 0);
-    }
-});
+    const errText = document.getElementById('err-text');
 
-// Инициализация при загрузке страницы
-(function init() {
-    let qText = '';
-    let answersData = [{text: '', correct: false}, {text: '', correct: false}];
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text || '';
+        return div.innerHTML.replace(/"/g, '&quot;');
+    }
+
+    function createAnswerBlock(text = '', isCorrect = false) {
+        const block = document.createElement('div');
+        block.className = 'flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 answer-block';
+        block.innerHTML = `
+            <input type="checkbox" class="a-correct w-5 h-5 text-success-600 rounded focus:ring-success-500 cursor-pointer" ${isCorrect ? 'checked' : ''} title="Правильный ответ">
+            <input type="text" class="a-text flex-1 px-3 py-1.5 border border-gray-300 rounded focus:ring-2 focus:ring-primary-500 outline-none text-sm" placeholder="Вариант ответа..." value="${escapeHtml(text)}">
+            <button type="button" class="remove-btn p-1.5 text-gray-400 hover:text-danger-600 transition rounded hover:bg-gray-200">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        `;
+        container.appendChild(block);
+        lucide.createIcons();
+
+        const checkbox = block.querySelector('.a-correct');
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+                document.querySelectorAll('.a-correct').forEach(cb => {
+                    if (cb !== checkbox) cb.checked = false;
+                });
+            }
+        });
+
+        block.querySelector('.remove-btn').addEventListener('click', () => {
+            if (document.querySelectorAll('.answer-block').length > 2) {
+                block.remove();
+                updateRemoveButtons();
+            }
+        });
+    }
+
+    function updateRemoveButtons() {
+        const blocks = document.querySelectorAll('.answer-block');
+        const btns = document.querySelectorAll('.remove-btn');
+        btns.forEach(btn => {
+            btn.disabled = blocks.length <= 2;
+            btn.style.opacity = blocks.length <= 2 ? '0.4' : '1';
+            btn.style.cursor = blocks.length <= 2 ? 'not-allowed' : 'pointer';
+        });
+    }
+
+    function showError(msg) {
+        errText.textContent = msg;
+        errBox.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    form.addEventListener('submit', (e) => {
+        errBox.classList.add('hidden');
+        const qText = qTextEl.value.trim();
+        if (!qText) { e.preventDefault(); return showError('Текст вопроса не может быть пустым.'); }
+
+        const blocks = document.querySelectorAll('.answer-block');
+        if (blocks.length < 2) { e.preventDefault(); return showError('Минимум 2 варианта ответа.'); }
+
+        const answers = [];
+        let hasCorrect = false;
+        for (let i = 0; i < blocks.length; i++) {
+            const txt = blocks[i].querySelector('.a-text').value.trim();
+            const isCor = blocks[i].querySelector('.a-correct').checked;
+            if (!txt) { e.preventDefault(); return showError(`Вариант ${i + 1} не может быть пустым.`); }
+            answers.push({ text: txt, is_correct: isCor, sort_order: i });
+            if (isCor) hasCorrect = true;
+        }
+
+        if (!hasCorrect) { e.preventDefault(); return showError('Не отмечен правильный ответ.'); }
+
+        hiddenInput.value = JSON.stringify([{ text: qText, sort_order: 0, answers }]);
+    });
+
+    document.getElementById('add-answer-btn').addEventListener('click', () => {
+        createAnswerBlock();
+        updateRemoveButtons();
+    });
+
+    // Init
     try {
         const raw = {{ initial_questions | tojson }};
         if (Array.isArray(raw) && raw.length > 0) {
-            const q = raw[0];
-            qText = q.text || '';
-            if (q.answers && q.answers.length >= 2) {
-                answersData = q.answers.map(a => ({text: a.text || '', correct: !!a.is_correct}));
+            qTextEl.value = raw[0].text || '';
+            if (raw[0].answers && raw[0].answers.length >= 2) {
+                raw[0].answers.forEach(a => createAnswerBlock(a.text, !!a.is_correct));
+            } else {
+                createAnswerBlock(); createAnswerBlock();
             }
+        } else {
+            createAnswerBlock(); createAnswerBlock();
         }
     } catch (e) {
-        console.warn("Ошибка парсинга initial_questions:", e);
+        createAnswerBlock(); createAnswerBlock();
     }
-    document.querySelector('.q-text').value = qText;
-    renderAnswers(answersData);
-})();
+    updateRemoveButtons();
+});
 </script>
-<style>
-.answer-block:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.answer-block .a-correct:checked { accent-color: #27ae60; }
-</style>
 {% endblock %}

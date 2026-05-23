@@ -1,11 +1,58 @@
 {% extends "base.html" %}
 {% block title %}Главная{% endblock %}
+{% block header_title %}Обзор системы{% endblock %}
 {% block content %}
-<h1>Панель администратора</h1>
-<p>Выберите раздел для управления контентом:</p>
-<ul>
-    <li><a href="/admin/ui/categories">Категории</a> — создание и удаление тем</li>
-    <li><a href="/admin/ui/lessons">Уроки</a> — управление статьями</li>
-    <li><a href="/admin/ui/users">Пользователи</a> — просмотр пользователей</li>
-</ul>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition group">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-gray-500 text-sm font-medium">Категории</h3>
+            <div class="p-2 bg-primary-50 rounded-lg group-hover:bg-primary-100 transition">
+                <i data-lucide="folder" class="w-5 h-5 text-primary-600"></i>
+            </div>
+        </div>
+        <p class="text-xl font-bold text-gray-900">Управление курсами</p>
+        <a href="/admin/ui/categories" class="mt-4 inline-flex items-center text-sm text-primary-600 hover:text-primary-700 font-medium">
+            Перейти <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+        </a>
+    </div>
+    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition group">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-gray-500 text-sm font-medium">Уроки</h3>
+            <div class="p-2 bg-success-50 rounded-lg group-hover:bg-success-100 transition">
+                <i data-lucide="book-open" class="w-5 h-5 text-success-600"></i>
+            </div>
+        </div>
+        <p class="text-xl font-bold text-gray-900">Контент и тесты</p>
+        <a href="/admin/ui/lessons" class="mt-4 inline-flex items-center text-sm text-success-600 hover:text-success-700 font-medium">
+            Перейти <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+        </a>
+    </div>
+    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition group">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-gray-500 text-sm font-medium">Пользователи</h3>
+            <div class="p-2 bg-warning-50 rounded-lg group-hover:bg-warning-100 transition">
+                <i data-lucide="users" class="w-5 h-5 text-warning-600"></i>
+            </div>
+        </div>
+        <p class="text-xl font-bold text-gray-900">Прогресс и аналитика</p>
+        <a href="/admin/ui/users" class="mt-4 inline-flex items-center text-sm text-warning-600 hover:text-warning-700 font-medium">
+            Перейти <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+        </a>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Быстрые действия</h3>
+    <div class="flex flex-wrap gap-3">
+        <a href="/admin/ui/categories" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition flex items-center gap-2 shadow-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i> Добавить категорию
+        </a>
+        <a href="/admin/ui/lessons/create" class="px-4 py-2 bg-success-600 text-white rounded-lg hover:bg-success-700 transition flex items-center gap-2 shadow-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i> Создать урок
+        </a>
+        <a href="/admin/ui/users" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition flex items-center gap-2 shadow-sm">
+            <i data-lucide="search" class="w-4 h-4"></i> Найти пользователя
+        </a>
+    </div>
+</div>
 {% endblock %}
