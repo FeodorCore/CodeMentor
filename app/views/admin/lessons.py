@@ -70,17 +70,11 @@ async def lessons_page(request: Request):
     error = request.query_params.get("error")
     success = request.query_params.get("success")
 
-    lessons_with_q_count = []
-    for lesson in lessons:
-        l_dict = lesson.model_dump()
-        l_dict["questions_count"] = question_service.get_questions_count(lesson.id)
-        lessons_with_q_count.append(l_dict)
-
     return templates.TemplateResponse(
         request=request,
         name="lessons.html",
         context={
-            "lessons": lessons_with_q_count,
+            "lessons": lessons,
             "categories": categories,
             "cat_map": cat_map,
             "selected_category_id": selected_category_id,
