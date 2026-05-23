@@ -3,36 +3,152 @@
 {% block content %}
 <h1>{{ "Редактирование урока #" ~ lesson.id if lesson else "Создание нового урока" }}</h1>
 
+<div id="frontend-error" style="display:none; background:#ffe6e6; color:#b30000; padding:10px; border-radius:6px; margin-bottom:15px;"></div>
 {% if error %}
-    <p><strong>Ошибка:</strong> {{ error }}</p>
+<div style="background:#ffe6e6; color:#b30000; padding:10px; border-radius:6px; margin-bottom:15px;">
+    <strong>⚠️ Ошибка сохранения:</strong> {{ error }}
+</div>
 {% endif %}
 
-<form method="POST" action="{{ '/admin/ui/lessons/' ~ lesson.id ~ '/edit' if lesson else '/admin/ui/lessons' }}">
+<form method="POST" action="{{ '/admin/ui/lessons/' ~ lesson.id ~ '/edit' if lesson else '/admin/ui/lessons' }}" id="lessonForm">
     <label for="category_id">Категория:</label>
     <select id="category_id" name="category_id" required>
         {% for cat in categories %}
-            <option value="{{ cat.id }}" {{ "selected" if lesson and lesson.category_id == cat.id else "" }}>
-                {{ cat.name }}
-            </option>
+        <option value="{{ cat.id }}"
+            {{ "selected" if (form_data and form_data.category_id == cat.id) or (lesson and lesson.category_id == cat.id) else "" }}>
+            {{ cat.name }}
+        </option>
         {% endfor %}
     </select>
     <br><br>
 
     <label for="sort_order">Позиция (sort_order):</label>
-    <input type="number" id="sort_order" name="sort_order" value="{{ lesson.sort_order if lesson else 1 }}" min="1" required>
-    <p><small>При вставке на позицию N, все уроки с позицией >= N сдвинутся на +1. При удалении хвост стягивается.</small></p>
+    <input type="number" id="sort_order" name="sort_order"
+           value="{{ form_data.sort_order if form_data else (lesson.sort_order if lesson else 1) }}"
+           min="1" required>
+    <p><small>При вставке на позицию N, все уроки с позицией >= N сдвинутся на +1.</small></p>
     <br>
 
     <label for="title">Заголовок:</label>
-    <input type="text" id="title" name="title" value="{{ lesson.title if lesson else '' }}" required>
+    <input type="text" id="title" name="title"
+           value="{{ form_data.title if form_data else (lesson.title if lesson else '') }}"
+           required style="width:80%;">
     <br><br>
 
     <label for="content">Содержимое:</label><br>
-    <textarea id="content" name="content" rows="10" cols="60" required>{{ lesson.content if lesson else '' }}</textarea>
+    <textarea id="content" name="content" rows="10" cols="80" required>{{ form_data.content if form_data else (lesson.content if lesson else '') }}</textarea>
     <br><br>
 
-    <button type="submit">{{ "Сохранить изменения" if lesson else "Создать урок" }}</button>
+    <fieldset style="border: 2px solid #4CAF50; padding: 15px; margin-top: 20px; border-radius: 8px;">
+        <legend><strong>🧠 Вопрос для закрепления (строго 1 вопрос, 2 ответа)</strong></legend>
+        <p><small>Заполните текст вопроса и два варианта ответа. Обязательно отметьте правильный вариант.</small></p>
+        <div id="questions-container"></div>
+    </fieldset>
+
+    <input type="hidden" name="questions_json" id="questions_json" value="">
+    <br><br>
+    <button type="submit" style="padding: 10px 24px; font-size: 16px; background:#2196F3; color:white; border:none; cursor:pointer; border-radius:4px;">
+        {{ "Сохранить изменения" if lesson else "Создать урок" }}
+    </button>
 </form>
 
 <p><a href="/admin/ui/lessons">← Назад к списку</a></p>
+
+<script>
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML.replace(/"/g, '&quot;');
+}
+
+// Рендер фиксированной структуры: 1 вопрос, 2 ответа
+function renderFixedQuestion(qText = '', ans1 = {text: '', correct: false}, ans2 = {text: '', correct: false}) {
+    const container = document.getElementById('questions-container');
+    container.innerHTML = `
+    <div class="question-block" id="question-0" style="border:1px solid #ccc; padding:12px; margin-bottom:12px; background:#f9f9f9; border-radius:6px;">
+        <strong>Вопрос 1</strong><br><br>
+        <input type="text" class="q-text" placeholder="Текст вопроса..." value="${escapeHtml(qText)}" style="width:95%; padding:6px; margin-bottom:12px; border:1px solid #ccc; border-radius:4px;">
+        <div class="answers-container">
+            <div class="answer-block" style="display:flex; align-items:center; margin-bottom:8px; gap:8px;">
+                <input type="checkbox" class="a-correct" data-idx="0" ${ans1.correct ? 'checked' : ''} title="Правильный ответ" style="width:18px; height:18px; cursor:pointer;">
+                <input type="text" class="a-text" placeholder="Вариант ответа 1..." value="${escapeHtml(ans1.text)}" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+            </div>
+            <div class="answer-block" style="display:flex; align-items:center; margin-bottom:8px; gap:8px;">
+                <input type="checkbox" class="a-correct" data-idx="1" ${ans2.correct ? 'checked' : ''} title="Правильный ответ" style="width:18px; height:18px; cursor:pointer;">
+                <input type="text" class="a-text" placeholder="Вариант ответа 2..." value="${escapeHtml(ans2.text)}" style="flex:1; padding:6px; border:1px solid #ccc; border-radius:4px;">
+            </div>
+        </div>
+    </div>`;
+
+    // Делаем чекбоксы взаимоисключающими (как radio)
+    container.querySelectorAll('.a-correct').forEach(cb => {
+        cb.addEventListener('change', function() {
+            if (this.checked) {
+                container.querySelectorAll('.a-correct').forEach(other => {
+                    if (other !== this) other.checked = false;
+                });
+            }
+        });
+    });
+}
+
+function validateAndCollect() {
+    const qText = document.querySelector('.q-text').value.trim();
+    if (!qText) throw new Error("Текст вопроса не может быть пустым.");
+
+    const aBlocks = document.querySelectorAll('.answer-block');
+    const answers = [];
+    let hasCorrect = false;
+
+    aBlocks.forEach(block => {
+        const aText = block.querySelector('.a-text').value.trim();
+        const isCorrect = block.querySelector('.a-correct').checked;
+        if (!aText) throw new Error("Оба варианта ответа должны быть заполнены.");
+        answers.push({ text: aText, is_correct: isCorrect });
+        if (isCorrect) hasCorrect = true;
+    });
+
+    if (!hasCorrect) throw new Error("Не отмечен правильный ответ.");
+
+    return [{ text: qText, answers: answers }];
+}
+
+document.getElementById('lessonForm').addEventListener('submit', function(e) {
+    const errBox = document.getElementById('frontend-error');
+    errBox.style.display = 'none';
+    try {
+        const questions = validateAndCollect();
+        document.getElementById('questions_json').value = JSON.stringify(questions);
+    } catch (err) {
+        e.preventDefault();
+        errBox.textContent = '⚠️ ' + err.message;
+        errBox.style.display = 'block';
+        window.scrollTo(0, 0);
+    }
+});
+
+// Инициализация при загрузке
+(function init() {
+    let qText = '', a1 = {text:'', correct:false}, a2 = {text:'', correct:false};
+    try {
+        const raw = {{ initial_questions | tojson }};
+        if (Array.isArray(raw) && raw.length > 0) {
+            const q = raw[0];
+            qText = q.text || '';
+            if (q.answers && q.answers.length >= 2) {
+                a1 = {text: q.answers[0].text || '', correct: !!q.answers[0].is_correct};
+                a2 = {text: q.answers[1].text || '', correct: !!q.answers[1].is_correct};
+            }
+        }
+    } catch (e) {
+        console.warn("Ошибка парсинга initial_questions:", e);
+    }
+    renderFixedQuestion(qText, a1, a2);
+})();
+</script>
+
+<style>
+.question-block:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.answer-block .a-correct:checked { accent-color: #27ae60; }
+</style>
 {% endblock %}

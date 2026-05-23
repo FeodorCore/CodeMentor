@@ -5,39 +5,69 @@ skinparam nodesep 80
 skinparam ranksep 50
 
 entity User {
-  * id : INTEGER <<generated>>
-  --
-  username TEXT
-  telegram_id : INTEGER <<unique>>
-  is_admin : BOOLEAN
+* id : INTEGER <<generated>>
+--
+username : TEXT
+telegram_id : INTEGER
+is_admin : BOOLEAN
 }
 
 entity Category {
-  * id : INTEGER <<generated>>
-  --
-  name : TEXT
+* id : INTEGER <<generated>>
+--
+name : TEXT
 }
 
 entity Lesson {
-  * id : INTEGER <<generated>>
-  --
-  category_id : INTEGER <<FK>>
-  sort_order : INTEGER <<для правильной очередности>>
-  title : TEXT
-  content : TEXT
+* id : INTEGER <<generated>>
+--
+category_id : INTEGER <<FK>>
+sort_order : INTEGER
+title : TEXT
+content : TEXT
+}
+
+entity Question {
+* id : INTEGER <<generated>>
+--
+lesson_id : INTEGER <<FK>>
+text : TEXT
+sort_order : INTEGER
+}
+
+entity AnswerOption {
+* id : INTEGER <<generated>>
+--
+question_id : INTEGER <<FK>>
+text : TEXT
+is_correct : BOOLEAN
+sort_order : INTEGER
 }
 
 entity UserProgress {
-  * id : INTEGER <<generated>>
-  --
-  user_id : INTEGER <<FK>>
-  lesson_id : INTEGER <<FK>>
-  learned : bool
-  completed_at : DATETIME
+* id : INTEGER <<generated>>
+--
+user_id : INTEGER <<FK>>
+lesson_id : INTEGER <<FK>>
+learned : BOOLEAN
+completed_at : DATETIME
+}
+
+entity UserAnswer {
+* id : INTEGER <<generated>>
+--
+user_id : INTEGER <<FK>>
+answer_option_id : INTEGER <<FK>>
+is_correct : BOOLEAN
+answered_at : DATETIME
 }
 
 ' Связи
 Category ||--o{ Lesson
+Lesson ||--o{ Question
+Question ||--o{ AnswerOption
 User ||--o{ UserProgress
 Lesson ||--o{ UserProgress
+User ||--o{ UserAnswer
+AnswerOption ||--o{ UserAnswer
 @enduml

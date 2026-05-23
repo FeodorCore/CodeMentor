@@ -4,10 +4,10 @@
 <h1>Управление уроками</h1>
 
 {% if error %}
-    <p><strong>Ошибка:</strong> {{ error }}</p>
+<p style="color:red;"><strong>Ошибка:</strong> {{ error }}</p>
 {% endif %}
 {% if success %}
-    <p><strong>Успешно:</strong> Операция выполнена.</p>
+<p style="color:green;"><strong>Успешно:</strong> Операция выполнена.</p>
 {% endif %}
 
 <p><a href="/admin/ui/lessons/create">Добавить новый урок</a></p>
@@ -17,43 +17,51 @@
     <select id="category_filter" name="category_id">
         <option value="">Все категории</option>
         {% for cat in categories %}
-            <option value="{{ cat.id }}" {{ "selected" if selected_category_id == cat.id else "" }}>
-                {{ cat.name }}
-            </option>
+        <option value="{{ cat.id }}" {{ "selected" if selected_category_id == cat.id else "" }}>
+            {{ cat.name }}
+        </option>
         {% endfor %}
     </select>
     <button type="submit">Показать</button>
 </form>
 
 {% if lessons %}
-    <table border="1" cellpadding="5" cellspacing="0">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Категория</th>
-                <th>Порядок</th>
-                <th>Заголовок</th>
-                <th>Действия</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for lesson in lessons %}
-            <tr>
-                <td>{{ lesson.id }}</td>
-                <td>{{ cat_map.get(lesson.category_id, "Неизвестно") }}</td>
-                <td>{{ lesson.sort_order }}</td>
-                <td>{{ lesson.title }}</td>
-                <td>
-                    <a href="/admin/ui/lessons/{{ lesson.id }}/edit">Редактировать</a> |
-                    <form method="POST" action="/admin/ui/lessons/{{ lesson.id }}/delete" style="display:inline;">
-                        <button type="submit" onclick="return confirm('Удалить урок?');">Удалить</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<table border="1" cellpadding="5" cellspacing="0">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Категория</th>
+            <th>Порядок</th>
+            <th>Заголовок</th>
+            <th>Вопросов</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for lesson in lessons %}
+        <tr>
+            <td>{{ lesson.id }}</td>
+            <td>{{ cat_map.get(lesson.category_id, "Неизвестно") }}</td>
+            <td>{{ lesson.sort_order }}</td>
+            <td>{{ lesson.title }}</td>
+            <td style="text-align:center;">
+                {% if lesson.questions_count > 0 %}
+                    <span style="color:#27ae60; font-weight:bold;">{{ lesson.questions_count }} ❓</span>
+                {% else %}
+                    <span style="color:#999;">0</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="/admin/ui/lessons/{{ lesson.id }}/edit">Редактировать</a> |
+                <form method="POST" action="/admin/ui/lessons/{{ lesson.id }}/delete" style="display:inline;">
+                    <button type="submit" onclick="return confirm('Удалить урок? Вопросы тоже удалятся.');">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% else %}
-    <p>Уроков пока нет.</p>
+<p>Уроков пока нет.</p>
 {% endif %}
 {% endblock %}

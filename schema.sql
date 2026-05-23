@@ -22,7 +22,26 @@ CREATE TABLE IF NOT EXISTS Lesson (
     FOREIGN KEY (category_id) REFERENCES Category(id) ON DELETE CASCADE
 );
 
--- Таблица прогресса пользователя
+-- Таблица вопросов к урокам
+CREATE TABLE IF NOT EXISTS Question (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lesson_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (lesson_id) REFERENCES Lesson(id) ON DELETE CASCADE
+);
+
+-- Таблица вариантов ответов
+CREATE TABLE IF NOT EXISTS AnswerOption (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    question_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    is_correct BOOLEAN NOT NULL DEFAULT FALSE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (question_id) REFERENCES Question(id) ON DELETE CASCADE
+);
+
+-- Таблица прогресса пользователя (прохождение уроков)
 CREATE TABLE IF NOT EXISTS UserProgress (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
@@ -34,8 +53,13 @@ CREATE TABLE IF NOT EXISTS UserProgress (
     UNIQUE(user_id, lesson_id)
 );
 
--- Индексы для скорости
-CREATE INDEX IF NOT EXISTS idx_user_telegram_id ON User(telegram_id);
-CREATE INDEX IF NOT EXISTS idx_user_username ON User(username);
-CREATE INDEX IF NOT EXISTS idx_lesson_category ON Lesson(category_id);
-CREATE INDEX IF NOT EXISTS idx_progress_user ON UserProgress(user_id);
+-- Таблица ответов пользователя на вопросы тестов
+CREATE TABLE IF NOT EXISTS UserAnswer (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    answer_option_id INTEGER NOT NULL,
+    is_correct BOOLEAN NOT NULL,
+    answered_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE,
+    FOREIGN KEY (answer_option_id) REFERENCES AnswerOption(id) ON DELETE CASCADE
+);
