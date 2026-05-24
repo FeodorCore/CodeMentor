@@ -141,7 +141,6 @@ async def handle_quiz_answer(
     questions = data.get("questions", [])
     idx = data.get("current_idx", 0)
 
-    # === СОХРАНЯЕМ КОНТЕКСТ ВОПРОСА ДЛЯ ИИ ===
     q = questions[idx] if idx < len(questions) else None
     user_ans_text = "Не указан"
     correct_ans_text = "Не указан"
@@ -159,7 +158,6 @@ async def handle_quiz_answer(
             "is_correct": is_correct,
         }
     )
-    # ========================================
 
     msg = (
         "✅ Верно! Отличная работа."
@@ -180,8 +178,6 @@ async def handle_quiz_answer(
                 ),
             )
     else:
-        # 🔧 ИСПРАВЛЕНИЕ: Не очищаем состояние сразу, чтобы кнопка "Спросить у ИИ" видела контекст
-        # Состояние очистится автоматически при переходе в другой режим или при нажатии "Назад"
         if isinstance(callback.message, Message):
             await callback.message.edit_text(
                 f"{msg}\n🎉 Тест завершён! Прогресс сохранён.",
