@@ -1,73 +1,49 @@
 @startuml
-hide circle
-skinparam linetype ortho
-skinparam nodesep 80
-skinparam ranksep 50
-
-entity User {
-* id : INTEGER <<generated>>
---
-username : TEXT
-telegram_id : INTEGER
-is_admin : BOOLEAN
+skinparam backgroundColor #FFFFFF
+skinparam activity {
+    BackgroundColor<<learn>> #E3F2FD
+    BorderColor<<learn>> #1976D2
+    BackgroundColor<<test>> #FFF3E0
+    BorderColor<<test>> #F57C00
+    BackgroundColor<<ai>> #F3E5F5
+    BorderColor<<ai>> #7B1FA2
+    BackgroundColor<<admin>> #E8F5E9
+    BorderColor<<admin>> #388E3C
+    RoundCorner 10
+    FontSize 12
 }
+skinparam dpi 150
+skinparam shadowing false
 
-entity Category {
-* id : INTEGER <<generated>>
---
-name : TEXT
-}
+start
 
-entity Lesson {
-* id : INTEGER <<generated>>
---
-category_id : INTEGER <<FK>>
-sort_order : INTEGER
-title : TEXT
-content : TEXT
-}
+:📱 Запуск бота /start;
 
-entity Question {
-* id : INTEGER <<generated>>
---
-lesson_id : INTEGER <<FK>>
-text : TEXT
-sort_order : INTEGER
-}
+:📂 Выбор категории курса;
 
-entity AnswerOption {
-* id : INTEGER <<generated>>
---
-question_id : INTEGER <<FK>>
-text : TEXT
-is_correct : BOOLEAN
-sort_order : INTEGER
-}
+:📖 Получение урока\n(теория + примеры кода); <<learn>>
 
-entity UserProgress {
-* id : INTEGER <<generated>>
---
-user_id : INTEGER <<FK>>
-lesson_id : INTEGER <<FK>>
-learned : BOOLEAN
-completed_at : DATETIME
-}
+:👀 Изучение материала;
 
-entity UserAnswer {
-* id : INTEGER <<generated>>
---
-user_id : INTEGER <<FK>>
-answer_option_id : INTEGER <<FK>>
-is_correct : BOOLEAN
-answered_at : DATETIME
-}
+:✅ Нажатие "Ознакомился";
 
-' Связи
-Category ||--o{ Lesson
-Lesson ||--o{ Question
-Question ||--o{ AnswerOption
-User ||--o{ UserProgress
-Lesson ||--o{ UserProgress
-User ||--o{ UserAnswer
-AnswerOption ||--o{ UserAnswer
+:📝 Тестирование\n(1 вопрос на урок); <<test>>
+
+if (Ответ правильный?) then (✅ Да)
+  :🎉 Прогресс обновлён;
+  :➡️ Переход к следующему уроку;
+else (❌ Нет)
+  :📉 Ошибка сохранена в БД;
+  :🤖 Обращение к ИИ-наставнику; <<ai>>
+  :💬 ИИ разбирает ошибку\nдаёт пояснение по теме;
+  :🔄 Возможность продолжить\nили повторить материал;
+endif
+
+:--- Административная часть ---;
+
+:🌐 Вход в Web-панель; <<admin>>
+:📊 Просмотр прогресса учеников\n(статистика, ответы, ошибки);
+:✏️ Управление курсами\n(категории, уроки, тесты);
+
+stop
 @enduml
