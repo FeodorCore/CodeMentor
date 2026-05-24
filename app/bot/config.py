@@ -19,7 +19,7 @@ def load_config() -> BotConfig:
     return BotConfig(
         token=os.getenv("BOT_TOKEN", ""),
         api_base_url=os.getenv("API_BASE_URL", "http://localhost:8000"),
-        llm_provider=os.getenv("LLM_PROVIDER", "ollama").lower(),
+        llm_provider=os.getenv("LLM_PROVIDER", "groq").lower(),
         llm_model=os.getenv("LLM_MODEL", "llama3-8b-8192"),
         ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         groq_api_key=os.getenv("GROQ_API_KEY", ""),

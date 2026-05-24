@@ -10,4 +10,3 @@ class AIChatFSM(StatesGroup):
 
 class QuizFSM(StatesGroup):
     active = State()
-
