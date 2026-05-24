@@ -8,7 +8,6 @@ from app.bot.config import load_config
 from app.bot.api_client import ApiClient
 from app.bot.handlers import all_routers
 from app.bot.llm.factory import create_llm_client
-from app.bot.services.consolidation import ConsolidationService
 
 
 async def main():
@@ -33,7 +32,6 @@ async def main():
     # 4. Инициализация сервисов и клиентов (Dependency Injection)
     api_client = ApiClient(base_url=config.api_base_url)
     llm_client = create_llm_client(config)
-    consolidation_svc = ConsolidationService()
 
     # 5. Регистрация роутеров
     dp.include_router(all_routers)
@@ -43,7 +41,6 @@ async def main():
         {
             "api": api_client,
             "llm": llm_client,
-            "consolidation": consolidation_svc,
         }
     )
 

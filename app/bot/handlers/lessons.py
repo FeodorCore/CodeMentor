@@ -80,9 +80,8 @@ async def show_lesson(callback: CallbackQuery, api: ApiClient, state: FSMContext
                 "❌ Урок не найден.", reply_markup=get_back_to_cats_kb()
             )
         return
-
-    # Отправляем контент как есть. В БД он уже в Telegram-safe формате.
-    text = f"📖 <b>{lesson.title}</b>\n\n{lesson.content}"
+    ready_text = lesson.content.replace("\\n", "\n")
+    text = f"📖 <b>{lesson.title}</b>\n\n{ready_text}"
     kb = get_lesson_actions_kb(lesson.id, lesson.category_id)
 
     if isinstance(callback.message, Message):
