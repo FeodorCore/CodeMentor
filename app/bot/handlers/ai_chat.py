@@ -1,3 +1,4 @@
+import logging
 from aiogram import Router, F
 from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
@@ -7,6 +8,7 @@ from app.bot.services.llm_service import LLMService
 from app.bot.states import AIChatFSM
 from app.bot.keyboards.inline import get_ai_chat_kb, get_main_menu_kb
 
+logger = logging.getLogger(__name__)
 router = Router(name="ai_chat")
 
 
@@ -41,19 +43,21 @@ async def start_lesson_qa(
     except Exception:
         lesson = None
 
-    # Сохраняем контекст теста ДО очистки стейта
+    # 🔍 ВАЖНО: Достаем контекст ДО очистки состояния
     data = await state.get_data()
     quiz_ctx = data.get("last_quiz_context")
+    logger.info(f"[AI_QA] quiz_ctx received: {quiz_ctx}")
 
     await state.clear()
     await state.set_state(AIChatFSM.lesson_qa)
-
     ctx = {
         "lesson_title": lesson.title if lesson else "Урок",
         "lesson_content": lesson.content if lesson else "",
-        "quiz_context": quiz_ctx,  # <-- передаём контекст ответа
+        "quiz_context": quiz_ctx,
     }
     system_prompt = LLMService.get_prompt("lesson_qa", ctx)
+    logger.info(f"[AI_QA] Prompt preview: {system_prompt[:500]}...")
+
     history = [{"role": "system", "content": system_prompt}]
     await state.update_data(
         history=history, mode="lesson_qa", lesson_id=lesson_id, category_id=category_id

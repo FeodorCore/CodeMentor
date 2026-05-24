@@ -1,3 +1,4 @@
+import re
 import html
 from typing import List, Dict, Tuple
 from app.bot.llm.base import BaseLLMClient
@@ -11,6 +12,7 @@ class LLMService:
     def get_prompt(mode: str, context: dict) -> str:
         if mode == "general":
             return "Ты — опытный эксперт по программированию. Отвечай четко, по делу, на русском языке. Помогай пользователю все что он попросит по темам программирования."
+
         elif mode == "category_helper":
             cats = context.get("categories", [])
             cat_list = "\n".join([f"- {c.name}" for c in cats])
@@ -18,22 +20,34 @@ class LLMService:
 Доступные категории:
 {cat_list}
 Твоя задача: кратко расспросить пользователя о его целях, уровне знаний и интересах, чтобы рекомендовать одну из категорий. Отвечай на русском, коротко (1-3 предложения). Не выдумывай категории."""
+
         elif mode == "lesson_qa":
-            base = f"""Ты — преподаватель по теме урока «{context.get("lesson_title", "")}».
-Содержание урока: {context.get("lesson_content", "")}
-Отвечай на вопросы ученика строго по этой теме. Кратко, на русском. Без markdown."""
+            # 1. Очищаем HTML и обрезаем контент урока, чтобы не превысить лимит токенов
+            raw_content = context.get("lesson_content", "")
+            clean_content = re.sub(r"<[^>]+>", "", raw_content)
+            clean_content = (
+                clean_content.replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", '"')
+                .replace("&amp;", "&")
+                .strip()
+            )
+            if len(clean_content) > 1200:
+                clean_content = (
+                    clean_content[:1200]
+                    + "\n... (материал обрезан для экономии контекста)"
+                )
 
             quiz_ctx = context.get("quiz_context")
+            parts = []
+
+            # 2. КОНТЕКСТ ВОПРОСА ПЕРВЫМ (чтобы точно не обрезался при лимите токенов)
             if quiz_ctx:
-                is_correct = quiz_ctx.get("is_correct")
                 q_text = quiz_ctx.get("question", "")
                 u_ans = quiz_ctx.get("user_answer", "")
                 c_ans = quiz_ctx.get("correct_answer", "")
-                status = "верный" if is_correct else "неверный"
-
-                base += f"""
-
-[КОНТЕКСТ ТЕКУЩЕГО ВОПРОСА]
+                status = "верный" if quiz_ctx.get("is_correct") else "неверный"
+                parts.append(f"""[КОНТЕКСТ ТЕКУЩЕГО ВОПРОСА]
 Вопрос теста: «{q_text}»
 Ответ ученика: «{u_ans}» ({status})
 Правильный ответ: «{c_ans}»
@@ -42,11 +56,21 @@ class LLMService:
 1. Сразу начни с разбора этого ответа. Объясни, почему он {status}.
 2. Если ответ неверный — четко объясни ошибку, разбери логику и почему правильный ответ именно такой.
 3. Если верный — похвали и кратко углуби тему или дай интересный факт.
-4. НЕ спрашивай «чем помочь?» или «что объяснить?». Сразу давай разбор. После этого поддерживай диалог по теме урока."""
-            return base
+4. НЕ спрашивай «чем помочь?» или «что объяснить?». Сразу давай разбор. После этого поддерживай диалог по теме урока.""")
+
+            # 3. Роль и материал урока
+            parts.append(f"""Ты — преподаватель по теме урока «{context.get("lesson_title", "")}».
+Содержание урока (справочно):
+{clean_content}
+
+Отвечай на вопросы ученика строго по этой теме. Кратко, на русском. Без markdown.""")
+
+            return "\n\n".join(parts)
+
         elif mode == "interview":
             return f"""Ты — технический интервьюер. Проведи собеседование по теме «{context.get("lesson_title", "")}».
 Задавай по одному вопросу за раз. Жди ответа. Оценивай кратко. Если ответ слабый, давай наводящую подсказку. Собеседование на русском. Без markdown."""
+
         return "Ты — полезный ассистент."
 
     @classmethod

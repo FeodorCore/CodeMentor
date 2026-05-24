@@ -137,7 +137,6 @@ async def handle_quiz_answer(
         await api.submit_answer(tg_id, ans_id, is_correct)
     except Exception:
         pass
-
     data = await state.get_data()
     questions = data.get("questions", [])
     idx = data.get("current_idx", 0)
@@ -152,7 +151,6 @@ async def handle_quiz_answer(
                 user_ans_text = a["text"]
             if a.get("is_correct"):
                 correct_ans_text = a["text"]
-
     await state.update_data(
         last_quiz_context={
             "question": q["text"] if q else "",
@@ -182,7 +180,8 @@ async def handle_quiz_answer(
                 ),
             )
     else:
-        await state.clear()
+        # 🔧 ИСПРАВЛЕНИЕ: Не очищаем состояние сразу, чтобы кнопка "Спросить у ИИ" видела контекст
+        # Состояние очистится автоматически при переходе в другой режим или при нажатии "Назад"
         if isinstance(callback.message, Message):
             await callback.message.edit_text(
                 f"{msg}\n🎉 Тест завершён! Прогресс сохранён.",
