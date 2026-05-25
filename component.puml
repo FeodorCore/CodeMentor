@@ -1,0 +1,33 @@
+@startuml
+skinparam linetype ortho
+skinparam componentStyle rectangle
+
+package "Telegram Bot (Aiogram)" {
+  [Handlers\n(start, categories, lessons, ai_chat)] as Handlers
+  [FSM Storage\n(MemoryStorage)] as FSM
+  [LLMService\n(prompts, history, split)] as LLMService
+  [ApiClient\n(httpx.AsyncClient)] as ApiClient
+}
+
+package "FastAPI Backend" {
+  [API Routes\n(/bot/*, /admin/*)] as Routes
+  [Services\n(categories, lessons, users, questions)] as Services
+  [Jinja2 Templates\n(Admin UI)] as Templates
+}
+
+database "SQLite (app.db)" as DB
+cloud "LLM Providers" {
+  [OllamaClient\n(REST /api/chat)] as Ollama
+  [GroqClient\n(AsyncGroq SDK)] as Groq
+}
+
+Handlers --> FSM : Чтение/запись состояния
+Handlers --> ApiClient : HTTP-запросы к бэкенду
+Handlers --> LLMService : Генерация промптов и вызов ИИ
+LLMService --> Ollama : Прямой запрос
+LLMService --> Groq : Прямой запрос
+ApiClient --> Routes : HTTP /bot/*
+Routes --> Services : Вызов бизнес-логики
+Services --> DB : SQL (sqlite3)
+Templates <-- Routes : Рендер админ-панели
+@enduml

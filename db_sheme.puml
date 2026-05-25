@@ -1,49 +1,65 @@
 @startuml
-skinparam backgroundColor #FFFFFF
-skinparam activity {
-    BackgroundColor<<learn>> #E3F2FD
-    BorderColor<<learn>> #1976D2
-    BackgroundColor<<test>> #FFF3E0
-    BorderColor<<test>> #F57C00
-    BackgroundColor<<ai>> #F3E5F5
-    BorderColor<<ai>> #7B1FA2
-    BackgroundColor<<admin>> #E8F5E9
-    BorderColor<<admin>> #388E3C
-    RoundCorner 10
-    FontSize 12
+skinparam linetype ortho
+
+!define PK <PK>
+!define FK <FK>
+
+entity "User" as user {
+  * id : INTEGER <<PK>>
+  * telegram_id : INTEGER <<UNIQUE NOT NULL>>
+  username : TEXT
+  is_admin : BOOLEAN
 }
-skinparam dpi 150
-skinparam shadowing false
 
-start
+entity "Category" as category {
+  * id : INTEGER <<PK>>
+  * name : TEXT
+}
 
-:📱 Запуск бота /start;
+entity "Lesson" as lesson {
+  * id : INTEGER <<PK>>
+  * category_id : INTEGER <<FK>>
+  sort_order : INTEGER
+  title : TEXT
+  content : TEXT
+}
 
-:📂 Выбор категории курса;
+entity "Question" as question {
+  * id : INTEGER <<PK>>
+  * lesson_id : INTEGER <<FK>>
+  text : TEXT
+  sort_order : INTEGER
+}
 
-:📖 Получение урока\n(теория + примеры кода); <<learn>>
+entity "AnswerOption" as answer_option {
+  * id : INTEGER <<PK>>
+  * question_id : INTEGER <<FK>>
+  text : TEXT
+  is_correct : BOOLEAN
+  sort_order : INTEGER
+}
 
-:👀 Изучение материала;
+entity "UserProgress" as user_progress {
+  * id : INTEGER <<PK>>
+  * user_id : INTEGER <<FK>>
+  * lesson_id : INTEGER <<FK>>
+  learned : BOOLEAN
+  completed_at : DATETIME
+}
 
-:✅ Нажатие "Ознакомился";
+entity "UserAnswer" as user_answer {
+  * id : INTEGER <<PK>>
+  * user_id : INTEGER <<FK>>
+  * answer_option_id : INTEGER <<FK>>
+  is_correct : BOOLEAN
+  answered_at : DATETIME
+}
 
-:📝 Тестирование\n(1 вопрос на урок); <<test>>
-
-if (Ответ правильный?) then (✅ Да)
-  :🎉 Прогресс обновлён;
-  :➡️ Переход к следующему уроку;
-else (❌ Нет)
-  :📉 Ошибка сохранена в БД;
-  :🤖 Обращение к ИИ-наставнику; <<ai>>
-  :💬 ИИ разбирает ошибку\nдаёт пояснение по теме;
-  :🔄 Возможность продолжить\nили повторить материал;
-endif
-
-:--- Административная часть ---;
-
-:🌐 Вход в Web-панель; <<admin>>
-:📊 Просмотр прогресса учеников\n(статистика, ответы, ошибки);
-:✏️ Управление курсами\n(категории, уроки, тесты);
-
-stop
+category ||--o{ lesson
+lesson ||--o{ question
+question ||--o{ answer_option
+user ||--o{ user_progress
+lesson ||--o{ user_progress
+user ||--o{ user_answer
+answer_option ||--o{ user_answer
 @enduml

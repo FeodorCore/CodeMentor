@@ -1,0 +1,34 @@
+@startuml
+skinparam linetype ortho
+actor User
+participant "Bot Handlers" as Bot
+participant "FastAPI /bot/*" as API
+participant "SQLite DB" as DB
+
+User -> Bot: /start
+Bot -> API: POST /bot/users/sync\n{telegram_id, username}
+API -> DB: INSERT/UPDATE User
+API --> Bot: UserDTO
+Bot --> User: Главное меню
+
+User -> Bot: 📚 Выбрать категорию
+Bot -> API: GET /bot/categories
+API -> DB: SELECT * FROM Category
+API --> Bot: list[CategoryDTO]
+Bot --> User: Список категорий
+
+User -> Bot: Выбор категории (callback)
+Bot -> API: GET /bot/categories/{id}/lessons
+API -> DB: SELECT * FROM Lesson WHERE category_id=?
+API --> Bot: list[LessonDTO]
+Bot -> API: GET /bot/users/{tg_id}/progress/{cat_id}
+API -> DB: SELECT lesson_id FROM UserProgress\nWHERE learned=TRUE
+API --> Bot: {completed_lessons: [...]}
+Bot --> User: Список уроков (с ✅/📄)
+
+User -> Bot: Выбор урока (callback)
+Bot -> API: GET /bot/lessons/{id}
+API -> DB: SELECT * FROM Lesson
+API --> Bot: LessonDTO (title, content)
+Bot --> User: Текст урока + клавиатура действий
+@enduml
