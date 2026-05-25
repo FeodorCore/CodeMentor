@@ -1,8 +1,7 @@
 @startuml
-skinparam linetype ortho
 
-!define PK <PK>
-!define FK <FK>
+skinparam linetype ortho
+hide circle
 
 entity "User" as user {
   * id : INTEGER <<PK>>
